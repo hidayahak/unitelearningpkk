@@ -9,8 +9,8 @@
   body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f0f4f8; color: #1f2328; font-size: 14px; line-height: 1.6; }
 
   /* HEADER */
-  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 16px; justify-content: center; }
-  .header-logos img { height: 56px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; margin: 0 6px; }
+  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; }
+  .header-logo img { height: 60px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; }
   .header-text { text-align: center; }
   .header-text h1 { font-size: 20px; font-weight: 700; }
   .header-text p { font-size: 13px; color: #a8c4e0; margin-top: 2px; }
@@ -141,13 +141,15 @@
 <body>
 
 <header class="header">
-  <div class="header-logos">
+  <div class="header-logo">
     <img src="Logo Politeknik Kota Kinabalu.png" alt="Logo PKK" onerror="this.style.display='none'">
-    <img src="Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
   </div>
   <div class="header-text">
     <h1>Unit eLearning</h1>
     <p>Politeknik Kota Kinabalu (PKK)</p>
+  </div>
+  <div class="header-logo">
+    <img src="Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
   </div>
 </header>
 
@@ -334,7 +336,7 @@
 <script>
 // =================== CONFIG ===================
 // Gantikan URL ini dengan URL Apps Script anda selepas deploy
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznm1WzspDvItrHznZw8abYPLyZc_NoH7sPD2uTwcMfSYUArYjbAfAPASDLn-FMOK01/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxk8ukY23BMrddr8b9Nv02tnUy4YNkEBog_kSTuE5CxRn837-NS8ACzVnPFFbWlHOo-/exec';
 
 // =================== STATE ===================
 let selectedBilik = 'TECC 1';
@@ -413,16 +415,18 @@ function submitTempahan(e) {
     return;
   }
 
-  const formData = new FormData();
-  Object.keys(data).forEach(k => formData.append(k, data[k]));
+  // Hantar ke Apps Script via GET dengan query string (paling reliable, elak CORS)
+  const queryString = Object.keys(data)
+    .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
+    .join('&');
 
-  fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData })
-    .then(r => r.json())
+  const url = APPS_SCRIPT_URL + '?' + queryString;
+
+  fetch(url, { method: 'GET', mode: 'no-cors' })
     .then(() => {
       showSuccess();
     })
     .catch(() => {
-      // Tetap tunjuk success kerana dah simpan dalam localStorage
       showSuccess();
     })
     .finally(() => {
