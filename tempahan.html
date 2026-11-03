@@ -341,17 +341,15 @@
 
 <script>
 // =================== CONFIG ===================
-// Gantikan URL ini dengan URL Apps Script anda selepas deploy
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaBIkoaLqKbtUyvKzzZhvNF1o9VoZ_OxtHLYx79muXPOLV8Vik1hxOwTLDAPGxsEVNXA/exec';
 
 // =================== STATE ===================
 let selectedBilik = 'TECC 1';
+let sheetData = []; // data dari Google Sheets
 let calYear, calMonth;
 const today = new Date();
 calYear = today.getFullYear();
 calMonth = today.getMonth();
-
-// Set minimum date to today
 document.getElementById('tarikh').min = today.toISOString().split('T')[0];
 
 // =================== BILIK SELECTION ===================
@@ -360,14 +358,17 @@ function pilihBilik(nama, el) {
   document.getElementById('bilik-display').value = nama;
   document.querySelectorAll('.bilik-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  renderCalendar();
 }
-// fallback untuk keserasian
-function selectBilik(radio) {
-  pilihBilik(radio.value, radio.closest('.bilik-card'));
+function selectBilik(radio) { pilihBilik(radio.value, radio.closest('.bilik-card')); }
+
+// =================== FORMAT DATE ===================
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-// =================== FORM SUBMIT ===================
+// =================== SUBMIT BORANG ===================
 function submitTempahan(e) {
   e.preventDefault();
   const btn = document.getElementById('submit-btn');
@@ -379,7 +380,22 @@ function submitTempahan(e) {
     return;
   }
 
-  const data = {
+  // Semak clash dari Sheet data
+  const clash = sheetData.find(t =>
+    t['Tarikh'] === document.getElementById('tarikh').value &&
+    t['Bilik'] === selectedBilik &&
+    t['Status'] !== 'Ditolak' &&
+    !(masaTamat <= t['Masa Mula'] || masaMula >= t['Masa Tamat'])
+  );
+  if (clash) {
+    alert(`⚠️ ${selectedBilik} telah ditempah pada tarikh tersebut dari ${clash['Masa Mula']} - ${clash['Masa Tamat']} oleh ${clash['Nama']}.\n\nSila pilih masa atau bilik lain.`);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Menghantar...';
+
+  const params = {
     nama: document.getElementById('nama').value,
     notel: document.getElementById('notel').value,
     jawatan: document.getElementById('jawatan').value,
@@ -388,91 +404,88 @@ function submitTempahan(e) {
     masaTamat: masaTamat,
     bilik: selectedBilik,
     tujuan: document.getElementById('tujuan').value,
-    peserta: document.getElementById('peserta').value || '—',
-    status: 'Menunggu',
-    timestamp: new Date().toISOString()
+    peserta: document.getElementById('peserta').value || '—'
   };
 
-  // Semak pertindihan tarikh + bilik
-  const existing = getTempahanData();
-  const clash = existing.find(t =>
-    t.tarikh === data.tarikh &&
-    t.bilik === data.bilik &&
-    t.status !== 'Ditolak' &&
-    !(data.masaTamat <= t.masaMula || data.masaMula >= t.masaTamat)
-  );
-  if (clash) {
-    alert(`⚠️ ${data.bilik} telah ditempah pada ${formatDate(data.tarikh)} dari ${clash.masaMula} - ${clash.masaTamat} oleh ${clash.nama}.\n\nSila pilih masa atau bilik lain.`);
-    return;
+  const qs = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+
+  // Guna hidden iframe untuk hantar tanpa CORS block
+  let iframe = document.getElementById('hidden-iframe');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'hidden-iframe';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
   }
 
-  btn.disabled = true;
-  btn.textContent = '⏳ Menghantar...';
-
-  // Simpan ke localStorage
-  existing.push(data);
-  localStorage.setItem('elearning_tempahan', JSON.stringify(existing));
-
-  // Cuba hantar ke Google Apps Script (jika URL dikonfigurasi)
-  if (APPS_SCRIPT_URL.includes('GANTI_URL')) {
-    showSuccess();
+  iframe.onload = function() {
     btn.disabled = false;
     btn.textContent = '📨 Hantar Permohonan';
-    return;
-  }
-
-  // Hantar ke Apps Script via GET — guna iframe trick untuk elak CORS block
-  const queryString = Object.keys(data)
-    .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
-    .join('&');
-  const url = APPS_SCRIPT_URL + '?' + queryString;
-
-  // Guna hidden image untuk trigger GET tanpa CORS issue
-  const img = new Image();
-  img.onload = img.onerror = function() {
-    showSuccess();
-    btn.disabled = false;
-    btn.textContent = '📨 Hantar Permohonan';
+    document.getElementById('success-msg').style.display = 'block';
+    document.getElementById('tempahan-form').reset();
+    document.getElementById('bilik-display').value = 'TECC 1';
+    selectedBilik = 'TECC 1';
+    document.querySelectorAll('.bilik-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('card-tecc1').classList.add('selected');
+    setTimeout(() => {
+      document.getElementById('success-msg').style.display = 'none';
+      muatDataDariSheet(); // Reload data selepas submit
+    }, 3000);
   };
-  // Fallback timeout
-  setTimeout(() => {
-    showSuccess();
-    btn.disabled = false;
-    btn.textContent = '📨 Hantar Permohonan';
-  }, 3000);
-  img.src = url;
+
+  iframe.src = APPS_SCRIPT_URL + '?' + qs;
 }
 
-function showSuccess() {
-  document.getElementById('success-msg').style.display = 'block';
-  document.getElementById('error-msg').style.display = 'none';
-  document.getElementById('tempahan-form').reset();
-  document.getElementById('bilik-display').value = 'TECC 1';
-  selectedBilik = 'TECC 1';
-  document.querySelectorAll('.bilik-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('card-tecc1').classList.add('selected');
-  renderCalendar();
-  renderList();
-  setTimeout(() => { document.getElementById('success-msg').style.display = 'none'; }, 6000);
+// =================== MUAT DATA DARI GOOGLE SHEETS ===================
+function muatDataDariSheet() {
+  const btn = document.getElementById('semak-btn');
+  if (btn) { btn.textContent = '⏳ Memuatkan...'; btn.disabled = true; }
+
+  // Bersihkan script tag lama
+  const old = document.getElementById('gs-script');
+  if (old) old.remove();
+
+  window._gsCallback = function(res) {
+    if (btn) { btn.textContent = '🔄 Semak Status Terkini'; btn.disabled = false; }
+    if (res && res.data) {
+      sheetData = res.data;
+      renderList(sheetData);
+      renderCalendar(sheetData);
+      tunjukMsg('✅ Data dikemaskini dari Google Sheets.', 'ok');
+    } else {
+      tunjukMsg('⚠️ Gagal mendapat data. Cuba lagi.', 'warn');
+    }
+  };
+
+  const s = document.createElement('script');
+  s.id = 'gs-script';
+  s.src = APPS_SCRIPT_URL + '?callback=_gsCallback&t=' + Date.now();
+  s.onerror = function() {
+    if (btn) { btn.textContent = '🔄 Semak Status Terkini'; btn.disabled = false; }
+    tunjukMsg('⚠️ Gagal sambung ke pelayan.', 'warn');
+  };
+  document.head.appendChild(s);
 }
 
-// =================== DATA ===================
-function getTempahanData() {
-  try { return JSON.parse(localStorage.getItem('elearning_tempahan') || '[]'); } catch { return []; }
-}
+function semakStatus() { muatDataDariSheet(); }
 
-function formatDate(str) {
-  if (!str) return '—';
-  const d = new Date(str + 'T00:00:00');
-  return d.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' });
+function tunjukMsg(msg, type) {
+  const el = document.getElementById('sync-msg');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = type === 'ok' ? '#dcfce7' : '#fffbeb';
+  el.style.borderColor = type === 'ok' ? '#86efac' : '#fde68a';
+  el.style.color = type === 'ok' ? '#166534' : '#92400e';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
 // =================== CALENDAR ===================
 const monthNames = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
 
-function renderCalendar() {
+function renderCalendar(data) {
+  data = data || sheetData;
   document.getElementById('cal-month-label').textContent = `${monthNames[calMonth]} ${calYear}`;
-  const data = getTempahanData();
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
 
@@ -480,7 +493,6 @@ function renderCalendar() {
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const daysInPrev = new Date(calYear, calMonth, 0).getDate();
 
-  // Previous month cells
   for (let i = firstDay - 1; i >= 0; i--) {
     const cell = document.createElement('div');
     cell.className = 'cal-cell other-month';
@@ -488,29 +500,25 @@ function renderCalendar() {
     grid.appendChild(cell);
   }
 
-  // Current month cells
   for (let d = 1; d <= daysInMonth; d++) {
-    const cell = document.createElement('div');
     const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday = (calYear === today.getFullYear() && calMonth === today.getMonth() && d === today.getDate());
+    const cell = document.createElement('div');
     cell.className = 'cal-cell' + (isToday ? ' today' : '');
     cell.innerHTML = `<div class="cal-date">${d}</div>`;
 
-    const dayEvents = data.filter(t => t.tarikh === dateStr && t.status !== 'Ditolak');
-    dayEvents.forEach(t => {
+    data.filter(t => t['Tarikh'] === dateStr && t['Status'] !== 'Ditolak').forEach(t => {
       const ev = document.createElement('div');
-      const cls = t.bilik === 'TECC 1' ? 'ev-tecc1' : t.bilik === 'TECC 3' ? 'ev-tecc3' : t.bilik === 'Hybrid Classroom' ? 'ev-hybrid' : 'ev-pending';
-      ev.className = `cal-event ${t.status === 'Menunggu' ? 'ev-pending' : cls}`;
-      ev.textContent = `${t.masaMula} ${t.bilik}`;
-      ev.title = `${t.bilik} — ${t.nama}`;
+      const b = t['Bilik'] || '';
+      const cls = b === 'TECC 1' ? 'ev-tecc1' : b === 'TECC 3' ? 'ev-tecc3' : b === 'Hybrid Classroom' ? 'ev-hybrid' : 'ev-pending';
+      ev.className = `cal-event ${t['Status'] === 'Menunggu' ? 'ev-pending' : cls}`;
+      ev.textContent = `${t['Masa Mula']} ${b}`;
       ev.onclick = () => showTooltip(t);
       cell.appendChild(ev);
     });
-
     grid.appendChild(cell);
   }
 
-  // Fill remaining cells
   const total = firstDay + daysInMonth;
   const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
   for (let i = 1; i <= remaining; i++) {
@@ -521,160 +529,55 @@ function renderCalendar() {
   }
 }
 
-function prevMonth() {
-  calMonth--;
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  renderCalendar();
-}
-
-function nextMonth() {
-  calMonth++;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  renderCalendar();
-}
+function prevMonth() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+function nextMonth() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
 
 // =================== TOOLTIP ===================
 function showTooltip(t) {
-  document.getElementById('tt-bilik').textContent = t.bilik;
-  document.getElementById('tt-nama').textContent = t.nama;
-  document.getElementById('tt-tarikh').textContent = formatDate(t.tarikh);
-  document.getElementById('tt-masa').textContent = `${t.masaMula} — ${t.masaTamat}`;
-  document.getElementById('tt-tujuan').textContent = t.tujuan;
-  document.getElementById('tt-status').textContent = t.status;
+  document.getElementById('tt-bilik').textContent = t['Bilik'] || '—';
+  document.getElementById('tt-nama').textContent = t['Nama'] || '—';
+  document.getElementById('tt-tarikh').textContent = formatDate(t['Tarikh']);
+  document.getElementById('tt-masa').textContent = `${t['Masa Mula']} — ${t['Masa Tamat']}`;
+  document.getElementById('tt-tujuan').textContent = t['Tujuan'] || '—';
+  document.getElementById('tt-status').textContent = t['Status'] || '—';
   document.getElementById('tooltip-overlay').classList.add('show');
 }
-function closeTooltip() {
-  document.getElementById('tooltip-overlay').classList.remove('show');
-}
+function closeTooltip() { document.getElementById('tooltip-overlay').classList.remove('show'); }
 
-// =================== SEMAK STATUS DARI GOOGLE SHEETS ===================
-// Guna JSONP (script tag injection) — cara paling reliable untuk Apps Script
-function semakStatus() {
-  if (APPS_SCRIPT_URL.includes('GANTI_URL')) {
-    tunjukSyncMsg('⚠️ URL Apps Script belum dikonfigurasi.', 'warn');
-    return;
-  }
-
-  const btn = document.getElementById('semak-btn');
-  btn.textContent = '⏳ Menyemak...';
-  btn.disabled = true;
-
-  // Bersihkan callback lama
-  if (window._jsonpCallback) {
-    try { delete window._jsonpCallback; } catch(e) {}
-  }
-  const oldScript = document.getElementById('jsonp-script');
-  if (oldScript) oldScript.remove();
-
-  // Timeout 10 saat
-  const timeout = setTimeout(() => {
-    btn.textContent = '🔄 Semak Status Terkini';
-    btn.disabled = false;
-    tunjukSyncMsg('⚠️ Gagal sambung ke pelayan. Sila cuba lagi.', 'warn');
-  }, 10000);
-
-  // Callback yang akan dipanggil oleh Apps Script
-  window._jsonpCallback = function(res) {
-    clearTimeout(timeout);
-    btn.textContent = '🔄 Semak Status Terkini';
-    btn.disabled = false;
-
-    if (!res || !res.data) {
-      tunjukSyncMsg('⚠️ Tiada data diterima.', 'warn');
-      return;
-    }
-
-    const local = getTempahanData();
-    let updated = 0;
-
-    res.data.forEach(row => {
-      const notel       = String(row['No Telefon'] || '').trim();
-      const tarikh      = String(row['Tarikh'] || '').trim();
-      const bilik       = String(row['Bilik'] || '').trim();
-      const statusSheet = String(row['Status'] || '').trim();
-
-      if (!notel || !tarikh || !bilik || !statusSheet) return;
-
-      const idx = local.findIndex(t =>
-        String(t.notel || '').trim() === notel &&
-        String(t.tarikh || '').trim() === tarikh &&
-        String(t.bilik || '').trim() === bilik
-      );
-
-      if (idx !== -1 && local[idx].status !== statusSheet) {
-        local[idx].status = statusSheet;
-        updated++;
-      }
-    });
-
-    if (updated > 0) {
-      localStorage.setItem('elearning_tempahan', JSON.stringify(local));
-      renderList();
-      renderCalendar();
-      tunjukSyncMsg(`✅ ${updated} status telah dikemaskini dari Google Sheets!`, 'ok');
-    } else {
-      tunjukSyncMsg('✅ Status sudah terkini. Tiada perubahan baharu.', 'ok');
-    }
-  };
-
-  // Inject script tag dengan callback parameter
-  const script = document.createElement('script');
-  script.id = 'jsonp-script';
-  script.src = APPS_SCRIPT_URL + '?callback=_jsonpCallback';
-  script.onerror = () => {
-    clearTimeout(timeout);
-    btn.textContent = '🔄 Semak Status Terkini';
-    btn.disabled = false;
-    tunjukSyncMsg('⚠️ Gagal sambung. Pastikan Apps Script di-deploy dengan betul.', 'warn');
-  };
-  document.head.appendChild(script);
-}
-
-function tunjukSyncMsg(msg, type) {
-  const el = document.getElementById('sync-msg');
-  el.textContent = msg;
-  el.style.display = 'block';
-  el.style.background = type === 'ok' ? '#dcfce7' : '#fffbeb';
-  el.style.borderColor = type === 'ok' ? '#86efac' : '#fde68a';
-  el.style.color = type === 'ok' ? '#166534' : '#92400e';
-  setTimeout(() => { el.style.display = 'none'; }, 5000);
-}
-
-// Auto semak status bila halaman dibuka
-function syncStatusFromSheet() { semakStatus(); }
-
-// =================== LIST ===================
-function renderList() {
-  const data = getTempahanData();
+// =================== SENARAI ===================
+function renderList(data) {
+  data = data || sheetData;
   const tbody = document.getElementById('tempahan-list');
   const empty = document.getElementById('empty-state');
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     tbody.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
   empty.style.display = 'none';
 
-  const sorted = [...data].sort((a, b) => new Date(b.tarikh) - new Date(a.tarikh));
-  tbody.innerHTML = sorted.map((t, i) => `
-    <tr>
+  const sorted = [...data].sort((a, b) => new Date(b['Tarikh']) - new Date(a['Tarikh']));
+  tbody.innerHTML = sorted.map((t, i) => {
+    const st = t['Status'] || 'Menunggu';
+    const cls = st === 'Lulus' ? 'status-approved' : st === 'Ditolak' ? 'status-rejected' : 'status-pending';
+    const tj = (t['Tujuan'] || '');
+    return `<tr>
       <td>${sorted.length - i}</td>
-      <td>${formatDate(t.tarikh)}</td>
-      <td>${t.masaMula} – ${t.masaTamat}</td>
-      <td><strong>${t.bilik}</strong></td>
-      <td>${t.nama}</td>
-      <td>${t.tujuan.length > 50 ? t.tujuan.substring(0,50) + '...' : t.tujuan}</td>
-      <td><span class="status-badge ${t.status === 'Lulus' ? 'status-approved' : t.status === 'Ditolak' ? 'status-rejected' : 'status-pending'}">${t.status}</span></td>
-    </tr>
-  `).join('');
+      <td>${formatDate(t['Tarikh'])}</td>
+      <td>${t['Masa Mula']} – ${t['Masa Tamat']}</td>
+      <td><strong>${t['Bilik']}</strong></td>
+      <td>${t['Nama']}</td>
+      <td>${tj.length > 50 ? tj.substring(0,50) + '...' : tj}</td>
+      <td><span class="status-badge ${cls}">${st}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 // =================== INIT ===================
-renderCalendar();
-renderList();
-// Sync status dari Sheet setiap kali halaman dibuka
-syncStatusFromSheet();
+renderCalendar([]);
+renderList([]);
+muatDataDariSheet(); // Load data dari Sheet terus
 </script>
 </body>
 </html>
