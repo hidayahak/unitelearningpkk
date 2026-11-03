@@ -415,24 +415,26 @@ function submitTempahan(e) {
     return;
   }
 
-  // Hantar ke Apps Script via GET dengan query string (paling reliable, elak CORS)
+  // Hantar ke Apps Script via GET — guna iframe trick untuk elak CORS block
   const queryString = Object.keys(data)
     .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
     .join('&');
-
   const url = APPS_SCRIPT_URL + '?' + queryString;
 
-  fetch(url, { method: 'GET', mode: 'no-cors' })
-    .then(() => {
-      showSuccess();
-    })
-    .catch(() => {
-      showSuccess();
-    })
-    .finally(() => {
-      btn.disabled = false;
-      btn.textContent = '📨 Hantar Permohonan';
-    });
+  // Guna hidden image untuk trigger GET tanpa CORS issue
+  const img = new Image();
+  img.onload = img.onerror = function() {
+    showSuccess();
+    btn.disabled = false;
+    btn.textContent = '📨 Hantar Permohonan';
+  };
+  // Fallback timeout
+  setTimeout(() => {
+    showSuccess();
+    btn.disabled = false;
+    btn.textContent = '📨 Hantar Permohonan';
+  }, 3000);
+  img.src = url;
 }
 
 function showSuccess() {
@@ -539,6 +541,49 @@ function closeTooltip() {
   document.getElementById('tooltip-overlay').classList.remove('show');
 }
 
+// =================== SYNC STATUS DARI GOOGLE SHEETS ===================
+function syncStatusFromSheet() {
+  if (APPS_SCRIPT_URL.includes('GANTI_URL')) return;
+
+  // Guna script tag trick untuk elak CORS — Apps Script redirect ke URL yang boleh dibaca
+  fetch(APPS_SCRIPT_URL + '?action=getAll')
+    .then(r => r.json())
+    .then(res => {
+      if (!res || !res.data) return;
+      const local = getTempahanData();
+      let updated = false;
+
+      res.data.forEach(row => {
+        // Match menggunakan notel + tarikh + bilik
+        const notel    = String(row['No Telefon'] || '').trim();
+        const tarikh   = String(row['Tarikh'] || '').trim();
+        const bilik    = String(row['Bilik'] || '').trim();
+        const statusSheet = String(row['Status'] || '').trim();
+
+        if (!notel || !tarikh || !bilik || !statusSheet) return;
+
+        const idx = local.findIndex(t =>
+          String(t.notel || '').trim() === notel &&
+          String(t.tarikh || '').trim() === tarikh &&
+          String(t.bilik || '').trim() === bilik
+        );
+
+        if (idx !== -1 && local[idx].status !== statusSheet) {
+          local[idx].status = statusSheet;
+          updated = true;
+        }
+      });
+
+      if (updated) {
+        localStorage.setItem('elearning_tempahan', JSON.stringify(local));
+        renderList();
+        renderCalendar();
+        console.log('Status dikemaskini dari Google Sheets');
+      }
+    })
+    .catch(err => console.log('Sync gagal (ok jika offline):', err));
+}
+
 // =================== LIST ===================
 function renderList() {
   const data = getTempahanData();
@@ -569,6 +614,8 @@ function renderList() {
 // =================== INIT ===================
 renderCalendar();
 renderList();
+// Sync status dari Sheet setiap kali halaman dibuka
+syncStatusFromSheet();
 </script>
 </body>
 </html>
