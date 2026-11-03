@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard KPI — Unit eLearning PKK</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f0f4f8; color: #1f2328; font-size: 14px; line-height: 1.6; }
+
+  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 16px; justify-content: center; }
+  .header-logos img { height: 56px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; margin: 0 6px; }
+  .header-text { text-align: center; }
+  .header-text h1 { font-size: 20px; font-weight: 700; }
+  .header-text p { font-size: 13px; color: #a8c4e0; margin-top: 2px; }
+
+  nav { background: #112d4a; border-bottom: 2px solid #2e6da4; }
+  nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; margin: 0; padding: 0; }
+  nav ul li a { display: block; padding: 13px 22px; color: #a8c4e0; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.15s, color 0.15s; }
+  nav ul li a:hover, nav ul li a.active { background: #1a3a5c; color: white; }
+  nav ul li a.active { border-bottom: 3px solid #fbbf24; }
+
+  .page-header { background: #1a3a5c; color: white; padding: 20px 32px; text-align: center; }
+  .page-header h2 { font-size: 22px; font-weight: 700; }
+  .page-header p { color: #a8c4e0; margin-top: 6px; font-size: 13px; }
+
+  /* IFRAME WRAP */
+  .kpi-wrap { width: 100%; background: white; }
+  .kpi-wrap iframe {
+    width: 100%;
+    height: calc(100vh - 180px);
+    min-height: 700px;
+    border: none;
+    display: block;
+  }
+
+  /* FALLBACK */
+  .kpi-fallback { display: none; max-width: 700px; margin: 60px auto; padding: 20px; text-align: center; }
+  .kpi-fallback .icon { font-size: 48px; margin-bottom: 16px; }
+  .kpi-fallback h3 { font-size: 18px; font-weight: 700; color: #1a3a5c; margin-bottom: 10px; }
+  .kpi-fallback p { font-size: 13px; color: #57606a; margin-bottom: 20px; }
+  .open-btn { display: inline-block; background: #1a3a5c; color: white; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; }
+  .open-btn:hover { background: #2e6da4; }
+
+  footer { background: #0d2137; color: #7a9ab8; text-align: center; padding: 16px 32px; font-size: 12px; border-top: 1px solid #1a3a5c; }
+
+  @media(max-width:600px) {
+    nav ul li a { padding: 10px 12px; font-size: 12px; }
+    .header { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logos">
+    <img src="../Logo Politeknik Kota Kinabalu.png" alt="Logo PKK" onerror="this.style.display='none'">
+    <img src="../Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
+  </div>
+  <div class="header-text">
+    <h1>Unit eLearning</h1>
+    <p>Politeknik Kota Kinabalu (PKK)</p>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="index.html">🏠 Utama</a></li>
+    <li><a href="unit.html">🏢 Tentang Unit</a></li>
+    <li><a href="tempahan.html">📅 Tempahan Bilik</a></li>
+    <li><a href="aktiviti.html">🖼️ Aktiviti</a></li>
+    <li><a href="kpi.html" class="active">📊 Dashboard KPI</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <h2>📊 Dashboard KPI 14 — POLIKK 2026</h2>
+  <p>Pemantauan pencapaian KPI Unit eLearning Politeknik Kota Kinabalu</p>
+</div>
+
+<div class="kpi-wrap">
+  <iframe
+    src="../index.html"
+    id="kpi-frame"
+    title="Dashboard KPI 14 POLIKK 2026"
+    onload="document.getElementById('kpi-fallback').style.display='none'"
+    onerror="document.getElementById('kpi-fallback').style.display='block'; this.style.display='none'">
+  </iframe>
+</div>
+
+<div class="kpi-fallback" id="kpi-fallback">
+  <div class="icon">📊</div>
+  <h3>Dashboard KPI</h3>
+  <p>Klik butang di bawah untuk membuka Dashboard KPI dalam tab baharu.</p>
+  <a href="../index.html" target="_blank" class="open-btn">🔗 Buka Dashboard KPI</a>
+</div>
+
+<footer>
+  <p>© 2026 Unit eLearning — Politeknik Kota Kinabalu (PKK)</p>
+</footer>
+
+</body>
+</html>

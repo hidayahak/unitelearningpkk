@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galeri Aktiviti — Unit eLearning PKK</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f0f4f8; color: #1f2328; font-size: 14px; line-height: 1.6; }
+
+  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 16px; justify-content: center; }
+  .header-logos img { height: 56px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; margin: 0 6px; }
+  .header-text { text-align: center; }
+  .header-text h1 { font-size: 20px; font-weight: 700; }
+  .header-text p { font-size: 13px; color: #a8c4e0; margin-top: 2px; }
+
+  nav { background: #112d4a; border-bottom: 2px solid #2e6da4; }
+  nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; margin: 0; padding: 0; }
+  nav ul li a { display: block; padding: 13px 22px; color: #a8c4e0; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.15s, color 0.15s; }
+  nav ul li a:hover, nav ul li a.active { background: #1a3a5c; color: white; }
+  nav ul li a.active { border-bottom: 3px solid #fbbf24; }
+
+  .page-header { background: #1a3a5c; color: white; padding: 28px 32px; text-align: center; }
+  .page-header h2 { font-size: 24px; font-weight: 700; }
+  .page-header p { color: #a8c4e0; margin-top: 6px; font-size: 13px; }
+
+  /* FILTER BAR */
+  .filter-bar { background: white; border-bottom: 1px solid #e5e7eb; padding: 14px 20px; position: sticky; top: 0; z-index: 40; }
+  .filter-inner { max-width: 1100px; margin: 0 auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  .filter-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { padding: 7px 16px; border-radius: 20px; border: 1.5px solid #e5e7eb; background: white; font-size: 12px; font-weight: 600; color: #57606a; cursor: pointer; transition: background 0.15s; }
+  .filter-btn.active { background: #1a3a5c; color: white; border-color: #1a3a5c; }
+  .filter-btn:hover:not(.active) { background: #f0f4f8; }
+  .search-wrap input { padding: 8px 14px; border: 1.5px solid #e5e7eb; border-radius: 20px; font-size: 12px; width: 220px; outline: none; }
+  .search-wrap input:focus { border-color: #2e6da4; }
+
+  /* GALLERY */
+  .gallery-section { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+  .year-group { margin-bottom: 40px; }
+  .year-label { font-size: 18px; font-weight: 700; color: #1a3a5c; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; gap: 10px; }
+  .year-label span { background: #1a3a5c; color: white; border-radius: 6px; padding: 2px 10px; font-size: 13px; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .activity-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; cursor: pointer; }
+  .activity-card:hover { box-shadow: 0 6px 24px rgba(26,58,92,0.12); transform: translateY(-3px); }
+  .card-img { width: 100%; height: 180px; object-fit: cover; background: #e0eaf5; display: flex; align-items: center; justify-content: center; font-size: 48px; color: #7a9ab8; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card-img.placeholder { background: linear-gradient(135deg, #1a3a5c 0%, #2e6da4 100%); }
+  .card-body { padding: 16px; }
+  .card-tag { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; margin-bottom: 8px; }
+  .tag-bengkel { background: #dbeafe; color: #1d4ed8; }
+  .tag-latihan { background: #dcfce7; color: #166534; }
+  .tag-seminar { background: #f3e8ff; color: #7c3aed; }
+  .tag-pameran { background: #fef9c3; color: #854d0e; }
+  .tag-kursus { background: #ffedd5; color: #c2410c; }
+  .tag-lain { background: #f1f5f9; color: #475569; }
+  .card-title { font-size: 14px; font-weight: 700; color: #1a3a5c; margin-bottom: 6px; line-height: 1.4; }
+  .card-date { font-size: 11px; color: #57606a; margin-bottom: 6px; }
+  .card-desc { font-size: 12px; color: #374151; line-height: 1.5; }
+  .card-more { display: inline-block; margin-top: 10px; font-size: 11px; color: #2e6da4; font-weight: 600; }
+
+  /* LIGHTBOX */
+  .lightbox { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+  .lightbox.show { display: flex; }
+  .lightbox-inner { background: white; border-radius: 16px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; }
+  .lb-img-wrap { background: #0d2137; display: flex; align-items: center; justify-content: center; min-height: 300px; border-radius: 16px 0 0 16px; overflow: hidden; }
+  .lb-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .lb-img-wrap .lb-placeholder { font-size: 80px; color: #2e6da4; }
+  .lb-content { padding: 28px; }
+  .lb-tag { display: inline-block; border-radius: 4px; padding: 3px 10px; font-size: 11px; font-weight: 700; margin-bottom: 12px; }
+  .lb-title { font-size: 18px; font-weight: 700; color: #1a3a5c; margin-bottom: 8px; line-height: 1.3; }
+  .lb-date { font-size: 12px; color: #57606a; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+  .lb-desc { font-size: 13px; color: #374151; line-height: 1.7; margin-bottom: 16px; }
+  .lb-close { background: #1a3a5c; color: white; border: none; padding: 9px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .lb-close:hover { background: #2e6da4; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 60px 20px; color: #57606a; }
+  .empty-state .es-icon { font-size: 48px; margin-bottom: 14px; }
+
+  /* ADD ACTIVITY SECTION */
+  .add-section { max-width: 1100px; margin: 0 auto 32px; padding: 0 20px; }
+  .add-card { background: white; border: 2px dashed #2e6da4; border-radius: 12px; padding: 24px; }
+  .add-card h3 { font-size: 15px; font-weight: 700; color: #1a3a5c; margin-bottom: 16px; }
+  .add-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { margin-bottom: 0; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: #1a3a5c; margin-bottom: 5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 9px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+    font-size: 13px; font-family: inherit; background: white; color: #1f2328; transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #2e6da4; }
+  .form-group textarea { resize: vertical; min-height: 70px; }
+  .full-col { grid-column: 1 / -1; }
+  .add-btn { background: #1a3a5c; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+  .add-btn:hover { background: #2e6da4; }
+
+  footer { background: #0d2137; color: #7a9ab8; text-align: center; padding: 16px 32px; font-size: 12px; border-top: 1px solid #1a3a5c; margin-top: 24px; }
+
+  @media(max-width:768px) {
+    .lightbox-inner { grid-template-columns: 1fr; }
+    .lb-img-wrap { border-radius: 16px 16px 0 0; min-height: 200px; }
+    .add-form-grid { grid-template-columns: 1fr; }
+    nav ul li a { padding: 10px 12px; font-size: 12px; }
+    .header { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logos">
+    <img src="../Logo Politeknik Kota Kinabalu.png" alt="Logo PKK" onerror="this.style.display='none'">
+    <img src="../Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
+  </div>
+  <div class="header-text">
+    <h1>Unit eLearning</h1>
+    <p>Politeknik Kota Kinabalu (PKK)</p>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="index.html">🏠 Utama</a></li>
+    <li><a href="unit.html">🏢 Tentang Unit</a></li>
+    <li><a href="tempahan.html">📅 Tempahan Bilik</a></li>
+    <li><a href="aktiviti.html" class="active">🖼️ Aktiviti</a></li>
+    <li><a href="kpi.html">📊 Dashboard KPI</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <h2>🖼️ Galeri Aktiviti Unit eLearning</h2>
+  <p>Koleksi gambar dan penerangan aktiviti yang dijalankan oleh Unit eLearning PKK</p>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="filter-btns">
+      <button class="filter-btn active" onclick="filterActivity('semua', this)">Semua</button>
+      <button class="filter-btn" onclick="filterActivity('bengkel', this)">🛠️ Bengkel</button>
+      <button class="filter-btn" onclick="filterActivity('latihan', this)">📚 Latihan</button>
+      <button class="filter-btn" onclick="filterActivity('seminar', this)">🎤 Seminar</button>
+      <button class="filter-btn" onclick="filterActivity('pameran', this)">🎪 Pameran</button>
+      <button class="filter-btn" onclick="filterActivity('kursus', this)">🎓 Kursus</button>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="search-input" placeholder="🔍 Cari aktiviti..." oninput="searchActivity(this.value)">
+    </div>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<div class="gallery-section" id="gallery-section">
+  <!-- Auto-generated by JS -->
+</div>
+
+<!-- ADD ACTIVITY -->
+<div class="add-section">
+  <div class="add-card">
+    <h3>➕ Tambah Aktiviti Baharu</h3>
+    <form id="add-form" onsubmit="addActivity(event)">
+      <div class="add-form-grid">
+        <div class="form-group">
+          <label>Tajuk Aktiviti *</label>
+          <input type="text" id="a-tajuk" placeholder="Contoh: Bengkel Pembangunan Video OBE" required>
+        </div>
+        <div class="form-group">
+          <label>Kategori *</label>
+          <select id="a-kategori" required>
+            <option value="">-- Pilih Kategori --</option>
+            <option value="bengkel">Bengkel</option>
+            <option value="latihan">Latihan</option>
+            <option value="seminar">Seminar</option>
+            <option value="pameran">Pameran</option>
+            <option value="kursus">Kursus</option>
+            <option value="lain">Lain-lain</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tarikh Aktiviti *</label>
+          <input type="date" id="a-tarikh" required>
+        </div>
+        <div class="form-group">
+          <label>Lokasi</label>
+          <input type="text" id="a-lokasi" placeholder="Contoh: TECC 1, PKK">
+        </div>
+        <div class="form-group full-col">
+          <label>Penerangan Aktiviti *</label>
+          <textarea id="a-desc" placeholder="Huraikan aktiviti secara ringkas..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>URL Gambar (optional)</label>
+          <input type="url" id="a-img" placeholder="https://... (tinggalkan kosong jika tiada)">
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <button type="submit" class="add-btn">💾 Simpan Aktiviti</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-inner" onclick="event.stopPropagation()">
+    <div class="lb-img-wrap" id="lb-img-wrap">
+      <div class="lb-placeholder" id="lb-placeholder">🖼️</div>
+    </div>
+    <div class="lb-content">
+      <span class="lb-tag" id="lb-tag"></span>
+      <div class="lb-title" id="lb-title"></div>
+      <div class="lb-date" id="lb-date"></div>
+      <div class="lb-desc" id="lb-desc"></div>
+      <button class="lb-close" onclick="closeLightbox()">✕ Tutup</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 Unit eLearning — Politeknik Kota Kinabalu (PKK)</p>
+</footer>
+
+<script>
+// =================== DEFAULT DATA ===================
+const defaultActivities = [
+  {
+    id: 1, tajuk: 'Bengkel Pembangunan Video OBE 2026', kategori: 'bengkel',
+    tarikh: '2026-03-15', lokasi: 'TECC 1, PKK',
+    desc: 'Bengkel intensif selama 2 hari bagi melatih pensyarah PKK dalam menghasilkan video pengajaran yang berorientasikan hasil pembelajaran (OBE). Seramai 45 orang pensyarah telah menyertai bengkel ini dan berjaya menghasilkan video berkualiti untuk diunggah ke platform LMS.',
+    img: ''
+  },
+  {
+    id: 2, tajuk: 'Seminar Transformasi Digital Pendidikan TVET', kategori: 'seminar',
+    tarikh: '2026-04-22', lokasi: 'Hybrid Classroom, PKK',
+    desc: 'Seminar sehari yang membincangkan hala tuju transformasi digital dalam pendidikan TVET Malaysia. Menampilkan penceramah jemputan dari KPT dan industri teknologi pendidikan. Dihadiri oleh lebih 100 peserta secara fizikal dan dalam talian.',
+    img: ''
+  },
+  {
+    id: 3, tajuk: 'Kursus Pembangunan eBook Interaktif', kategori: 'kursus',
+    tarikh: '2026-05-10', lokasi: 'TECC 3, PKK',
+    desc: 'Kursus 3 hari melatih pensyarah menggunakan perisian iSpring Suite untuk menghasilkan eBook interaktif. Peserta belajar teknik animasi ringkas, soalan interaktif, dan cara menerbitkan kandungan ke platform LMS.',
+    img: ''
+  },
+  {
+    id: 4, tajuk: 'Pameran Inovasi eLearning PKK 2026', kategori: 'pameran',
+    tarikh: '2026-06-05', lokasi: 'Dewan Utama, PKK',
+    desc: 'Pameran tahunan mempamerkan hasil kerja dan pencapaian Unit eLearning PKK sepanjang tahun 2026. Merangkumi demonstrasi live platform LMS, video terbaik, dan projek inovasi digital oleh jabatan-jabatan di PKK.',
+    img: ''
+  },
+  {
+    id: 5, tajuk: 'Latihan Penggunaan Sistem LMS untuk Pensyarah Baharu', kategori: 'latihan',
+    tarikh: '2026-07-18', lokasi: 'TECC 1, PKK',
+    desc: 'Sesi latihan hands-on selama sehari khusus untuk pensyarah baharu PKK. Merangkumi asas penggunaan LMS, cara muat naik bahan, membuat kuiz dalam talian, dan menguruskan kelas digital.',
+    img: ''
+  },
+  {
+    id: 6, tajuk: 'Bengkel Rakaman Video Profesional', kategori: 'bengkel',
+    tarikh: '2026-08-20', lokasi: 'Studio Rakaman, PKK',
+    desc: 'Bengkel praktikal menggunakan studio rakaman Unit eLearning PKK. Peserta dibimbing teknik rakaman video yang betul, penggunaan green screen, pencahayaan, dan penyuntingan asas menggunakan perisian DaVinci Resolve.',
+    img: ''
+  }
+];
+
+// =================== STATE ===================
+let currentFilter = 'semua';
+let currentSearch = '';
+
+function getActivities() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('elearning_aktiviti') || '[]');
+    return [...defaultActivities, ...stored];
+  } catch { return defaultActivities; }
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+const tagClass = { bengkel:'tag-bengkel', latihan:'tag-latihan', seminar:'tag-seminar', pameran:'tag-pameran', kursus:'tag-kursus', lain:'tag-lain' };
+const tagLabel = { bengkel:'Bengkel', latihan:'Latihan', seminar:'Seminar', pameran:'Pameran', kursus:'Kursus', lain:'Lain-lain' };
+const placeholderEmoji = { bengkel:'🛠️', latihan:'📚', seminar:'🎤', pameran:'🎪', kursus:'🎓', lain:'📌' };
+
+// =================== RENDER ===================
+function renderGallery() {
+  let activities = getActivities();
+
+  if (currentFilter !== 'semua') {
+    activities = activities.filter(a => a.kategori === currentFilter);
+  }
+  if (currentSearch.trim()) {
+    const q = currentSearch.toLowerCase();
+    activities = activities.filter(a =>
+      a.tajuk.toLowerCase().includes(q) ||
+      a.desc.toLowerCase().includes(q) ||
+      (a.lokasi || '').toLowerCase().includes(q)
+    );
+  }
+
+  const section = document.getElementById('gallery-section');
+  if (activities.length === 0) {
+    section.innerHTML = `<div class="empty-state"><div class="es-icon">🔍</div><p>Tiada aktiviti dijumpai untuk carian atau penapis yang dipilih.</p></div>`;
+    return;
+  }
+
+  // Group by year
+  const byYear = {};
+  activities.forEach(a => {
+    const year = a.tarikh ? a.tarikh.split('-')[0] : 'Tidak Dinyatakan';
+    if (!byYear[year]) byYear[year] = [];
+    byYear[year].push(a);
+  });
+
+  const years = Object.keys(byYear).sort((a, b) => b - a);
+  section.innerHTML = years.map(yr => `
+    <div class="year-group" data-year="${yr}">
+      <div class="year-label">📅 Tahun ${yr} <span>${byYear[yr].length} Aktiviti</span></div>
+      <div class="gallery-grid">
+        ${byYear[yr].map(a => `
+          <div class="activity-card" onclick="openLightbox(${a.id})">
+            <div class="card-img ${a.img ? '' : 'placeholder'}">
+              ${a.img
+                ? `<img src="${a.img}" alt="${a.tajuk}" onerror="this.parentElement.innerHTML='<span style=font-size:48px>${placeholderEmoji[a.kategori]||'📌'}</span>'">`
+                : `<span style="font-size:48px">${placeholderEmoji[a.kategori] || '📌'}</span>`
+              }
+            </div>
+            <div class="card-body">
+              <span class="card-tag ${tagClass[a.kategori] || 'tag-lain'}">${tagLabel[a.kategori] || 'Lain-lain'}</span>
+              <div class="card-title">${a.tajuk}</div>
+              <div class="card-date">📅 ${formatDate(a.tarikh)}${a.lokasi ? ' &nbsp;|&nbsp; 📍 ' + a.lokasi : ''}</div>
+              <div class="card-desc">${a.desc.length > 120 ? a.desc.substring(0, 120) + '...' : a.desc}</div>
+              <span class="card-more">Baca selanjutnya →</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// =================== LIGHTBOX ===================
+function openLightbox(id) {
+  const activities = getActivities();
+  const a = activities.find(x => x.id === id);
+  if (!a) return;
+
+  const wrap = document.getElementById('lb-img-wrap');
+  if (a.img) {
+    wrap.innerHTML = `<img src="${a.img}" alt="${a.tajuk}" onerror="this.parentElement.innerHTML='<div class=lb-placeholder>${placeholderEmoji[a.kategori]||'📌'}</div>'">`;
+  } else {
+    wrap.innerHTML = `<div class="lb-placeholder">${placeholderEmoji[a.kategori] || '📌'}</div>`;
+  }
+
+  const tag = document.getElementById('lb-tag');
+  tag.textContent = tagLabel[a.kategori] || 'Lain-lain';
+  tag.className = `lb-tag ${tagClass[a.kategori] || 'tag-lain'}`;
+
+  document.getElementById('lb-title').textContent = a.tajuk;
+  document.getElementById('lb-date').innerHTML = `📅 ${formatDate(a.tarikh)}${a.lokasi ? ' &nbsp;&nbsp; 📍 ' + a.lokasi : ''}`;
+  document.getElementById('lb-desc').textContent = a.desc;
+  document.getElementById('lightbox').classList.add('show');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+}
+
+// =================== FILTER & SEARCH ===================
+function filterActivity(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGallery();
+}
+
+function searchActivity(val) {
+  currentSearch = val;
+  renderGallery();
+}
+
+// =================== ADD ACTIVITY ===================
+let nextId = 100;
+function addActivity(e) {
+  e.preventDefault();
+  const stored = JSON.parse(localStorage.getItem('elearning_aktiviti') || '[]');
+  const newAct = {
+    id: nextId++,
+    tajuk: document.getElementById('a-tajuk').value,
+    kategori: document.getElementById('a-kategori').value,
+    tarikh: document.getElementById('a-tarikh').value,
+    lokasi: document.getElementById('a-lokasi').value,
+    desc: document.getElementById('a-desc').value,
+    img: document.getElementById('a-img').value
+  };
+  stored.push(newAct);
+  localStorage.setItem('elearning_aktiviti', JSON.stringify(stored));
+  document.getElementById('add-form').reset();
+  renderGallery();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// =================== INIT ===================
+renderGallery();
+</script>
+</body>
+</html>

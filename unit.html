@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tentang Unit — Unit eLearning PKK</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f0f4f8; color: #1f2328; font-size: 14px; line-height: 1.6; }
+
+  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 16px; justify-content: center; }
+  .header-logos img { height: 56px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; margin: 0 6px; }
+  .header-text { text-align: center; }
+  .header-text h1 { font-size: 20px; font-weight: 700; }
+  .header-text p { font-size: 13px; color: #a8c4e0; margin-top: 2px; }
+
+  nav { background: #112d4a; border-bottom: 2px solid #2e6da4; }
+  nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; margin: 0; padding: 0; }
+  nav ul li a { display: block; padding: 13px 22px; color: #a8c4e0; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.15s, color 0.15s; }
+  nav ul li a:hover, nav ul li a.active { background: #1a3a5c; color: white; }
+  nav ul li a.active { border-bottom: 3px solid #fbbf24; }
+
+  .page-header { background: #1a3a5c; color: white; padding: 28px 32px; text-align: center; }
+  .page-header h2 { font-size: 24px; font-weight: 700; }
+  .page-header p { color: #a8c4e0; margin-top: 6px; font-size: 13px; }
+
+  /* TAB NAV */
+  .tab-nav { background: white; border-bottom: 2px solid #e5e7eb; position: sticky; top: 0; z-index: 50; }
+  .tab-nav ul { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; margin: 0; padding: 0 20px; max-width: 1100px; margin: 0 auto; }
+  .tab-nav ul li button { background: none; border: none; padding: 14px 20px; font-size: 13px; font-weight: 600; color: #57606a; cursor: pointer; border-bottom: 3px solid transparent; transition: color 0.15s; }
+  .tab-nav ul li button:hover { color: #1a3a5c; }
+  .tab-nav ul li button.active { color: #1a3a5c; border-bottom-color: #1a3a5c; }
+
+  .section { display: none; max-width: 1100px; margin: 0 auto; padding: 36px 20px; }
+  .section.active { display: block; }
+
+  /* INFO UNIT */
+  .intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+  .info-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 24px; }
+  .info-card h3 { font-size: 16px; font-weight: 700; color: #1a3a5c; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid #f0f4f8; }
+  .info-card p { font-size: 13px; color: #374151; line-height: 1.7; }
+  .info-card ul { list-style: none; padding: 0; }
+  .info-card ul li { padding: 5px 0; font-size: 13px; color: #374151; display: flex; gap: 8px; align-items: flex-start; }
+  .info-card ul li::before { content: "▸"; color: #2e6da4; font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+  .full-width { grid-column: 1 / -1; }
+
+  /* ORG CHART */
+  .org-wrap { overflow-x: auto; padding-bottom: 10px; }
+  .org-tree { display: flex; flex-direction: column; align-items: center; gap: 0; min-width: 600px; }
+  .org-level { display: flex; justify-content: center; gap: 20px; flex-wrap: nowrap; position: relative; }
+  .org-level + .org-level { margin-top: 0; }
+  .org-connector { width: 2px; background: #2e6da4; height: 30px; margin: 0 auto; }
+  .org-h-line-wrap { display: flex; justify-content: center; margin-bottom: 0; }
+  .org-h-line { border-top: 2px solid #2e6da4; }
+  .org-branch { display: flex; flex-direction: column; align-items: center; }
+  .org-branch-connector { width: 2px; background: #2e6da4; height: 20px; }
+
+  .org-card { background: white; border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; text-align: center; min-width: 160px; max-width: 190px; transition: box-shadow 0.15s; }
+  .org-card:hover { box-shadow: 0 4px 16px rgba(26,58,92,0.12); }
+  .org-card.head { border-color: #1a3a5c; background: #1a3a5c; color: white; }
+  .org-card.head .org-name { color: white; }
+  .org-card.head .org-pos { color: #a8c4e0; }
+  .org-card.ketua { border-color: #2e6da4; }
+  .org-card.ahli { border-color: #e5e7eb; }
+  .org-avatar { width: 46px; height: 46px; border-radius: 50%; background: #e0eaf5; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 8px; }
+  .org-card.head .org-avatar { background: rgba(255,255,255,0.2); }
+  .org-name { font-size: 12px; font-weight: 700; color: #1a3a5c; line-height: 1.3; }
+  .org-pos { font-size: 10px; color: #57606a; margin-top: 3px; }
+
+  /* TANGGUNGJAWAB */
+  .tanggung-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .tanggung-card { background: white; border-radius: 10px; border: 1px solid #e5e7eb; padding: 20px; }
+  .tanggung-card .t-icon { font-size: 28px; margin-bottom: 10px; }
+  .tanggung-card h4 { font-size: 14px; font-weight: 700; color: #1a3a5c; margin-bottom: 8px; }
+  .tanggung-card ul { list-style: none; padding: 0; }
+  .tanggung-card ul li { font-size: 12px; color: #374151; padding: 4px 0; border-bottom: 1px solid #f0f4f8; display: flex; gap: 8px; align-items: flex-start; }
+  .tanggung-card ul li:last-child { border-bottom: none; }
+  .tanggung-card ul li::before { content: "✓"; color: #22a65a; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* CONTACT */
+  .contact-bar { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 20px 24px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 24px; }
+  .contact-item { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .contact-icon { font-size: 20px; }
+
+  footer { background: #0d2137; color: #7a9ab8; text-align: center; padding: 16px 32px; font-size: 12px; border-top: 1px solid #1a3a5c; margin-top: 24px; }
+
+  @media(max-width:768px) {
+    .intro-grid { grid-template-columns: 1fr; }
+    .full-width { grid-column: 1; }
+    nav ul li a { padding: 10px 12px; font-size: 12px; }
+    .header { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logos">
+    <img src="../Logo Politeknik Kota Kinabalu.png" alt="Logo PKK" onerror="this.style.display='none'">
+    <img src="../Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
+  </div>
+  <div class="header-text">
+    <h1>Unit eLearning</h1>
+    <p>Politeknik Kota Kinabalu (PKK)</p>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="index.html">🏠 Utama</a></li>
+    <li><a href="unit.html" class="active">🏢 Tentang Unit</a></li>
+    <li><a href="tempahan.html">📅 Tempahan Bilik</a></li>
+    <li><a href="aktiviti.html">🖼️ Aktiviti</a></li>
+    <li><a href="kpi.html">📊 Dashboard KPI</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <h2>🏢 Pengenalan Unit eLearning PKK</h2>
+  <p>Maklumat lengkap tentang unit, carta organisasi, dan tanggungjawab</p>
+</div>
+
+<!-- TAB NAVIGATION -->
+<div class="tab-nav">
+  <ul>
+    <li><button class="active" onclick="showTab('info', this)">📋 Info Unit</button></li>
+    <li><button onclick="showTab('carta', this)">👥 Carta Organisasi</button></li>
+    <li><button onclick="showTab('tanggung', this)">📌 Tanggungjawab</button></li>
+  </ul>
+</div>
+
+<!-- TAB: INFO UNIT -->
+<div class="section active" id="tab-info">
+  <div class="intro-grid">
+    <div class="info-card">
+      <h3>🎯 Latar Belakang Unit</h3>
+      <p>
+        Unit eLearning Politeknik Kota Kinabalu (PKK) ditubuhkan bagi menyokong dan mempertingkatkan kualiti pengajaran dan pembelajaran secara digital di institusi ini. Unit ini berperanan sebagai pusat pembangunan kandungan digital, pengurusan platform eLearning, dan sokongan teknikal kepada warga PKK.
+      </p>
+    </div>
+    <div class="info-card">
+      <h3>🌟 Visi Unit</h3>
+      <p>
+        Menjadi unit eLearning yang progresif, inovatif, dan diiktiraf dalam membangunkan ekosistem pembelajaran digital yang berkualiti bagi melahirkan modal insan mahir dan berdaya saing di peringkat nasional.
+      </p>
+    </div>
+    <div class="info-card">
+      <h3>🎯 Misi Unit</h3>
+      <ul>
+        <li>Membangunkan dan menyelenggara platform eLearning yang mesra pengguna</li>
+        <li>Menyokong pensyarah dalam menghasilkan kandungan digital berkualiti</li>
+        <li>Melaksanakan latihan dan bengkel berkaitan teknologi pendidikan</li>
+        <li>Memastikan ketersediaan infrastruktur ICT untuk pembelajaran hibrid</li>
+        <li>Memantau dan menilai keberkesanan pelaksanaan eLearning di PKK</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>📍 Maklumat Hubungan</h3>
+      <ul>
+        <li>Politeknik Kota Kinabalu, Sabah</li>
+        <li>Peti Surat 2190, 88999 Kota Kinabalu</li>
+        <li>Tel: 088-XXX XXX</li>
+        <li>Faks: 088-XXX XXX</li>
+        <li>Email: elearning@pkk.edu.my</li>
+        <li>Waktu Operasi: Isnin – Jumaat, 8:00 pagi – 5:00 petang</li>
+      </ul>
+    </div>
+    <div class="info-card full-width">
+      <h3>🏛️ Kemudahan Unit</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:8px;">
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;border:1px solid #e5e7eb;text-align:center;">
+          <div style="font-size:28px;margin-bottom:8px;">🖥️</div>
+          <strong style="color:#1a3a5c;font-size:13px;">TECC 1</strong>
+          <p style="font-size:11px;color:#57606a;margin-top:4px;">Technology Enhanced Classroom 1 — Bilik kuliah berteknologi tinggi dengan kemudahan interaktif</p>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;border:1px solid #e5e7eb;text-align:center;">
+          <div style="font-size:28px;margin-bottom:8px;">💻</div>
+          <strong style="color:#1a3a5c;font-size:13px;">TECC 3</strong>
+          <p style="font-size:11px;color:#57606a;margin-top:4px;">Technology Enhanced Classroom 3 — Dilengkapi dengan peralatan multimedia terkini</p>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;border:1px solid #e5e7eb;text-align:center;">
+          <div style="font-size:28px;margin-bottom:8px;">🎓</div>
+          <strong style="color:#1a3a5c;font-size:13px;">Hybrid Classroom</strong>
+          <p style="font-size:11px;color:#57606a;margin-top:4px;">Bilik kuliah hibrid dengan kemampuan mengajar secara serentak dalam kelas dan dalam talian</p>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;border:1px solid #e5e7eb;text-align:center;">
+          <div style="font-size:28px;margin-bottom:8px;">🎙️</div>
+          <strong style="color:#1a3a5c;font-size:13px;">Studio Rakaman</strong>
+          <p style="font-size:11px;color:#57606a;margin-top:4px;">Studio rakaman video bagi pembangunan kandungan video pembelajaran berkualiti</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: CARTA ORGANISASI -->
+<div class="section" id="tab-carta">
+  <div style="background:white;border-radius:12px;border:1px solid #e5e7eb;padding:28px;margin-bottom:24px;">
+  <h3 style="font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:6px;">👥 Carta Organisasi Jawatankuasa E-Pembelajaran PKK</h3>
+  <p style="font-size:12px;color:#57606a;margin-bottom:20px;">Politeknik Kota Kinabalu &nbsp;|&nbsp; Tarikh Kemaskini: 1 Jun 2025</p>
+
+  <div style="text-align:center;">
+    <img
+      src="CARTA ORGANISASI JAWATANKUASA E-PEMBELAJARAN PKK 2025.jpg"
+      alt="Carta Organisasi Jawatankuasa E-Pembelajaran Politeknik Kota Kinabalu 2025"
+      style="max-width:100%;height:auto;border-radius:8px;border:1px solid #e5e7eb;box-shadow:0 2px 12px rgba(0,0,0,0.08);"
+    >
+  </div>
+
+  <div style="background:#f0f4f8;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-top:16px;font-size:12px;color:#57606a;text-align:center;">
+    Disahkan oleh: <strong style="color:#1a3a5c;">Ts. Abdul Razak bin Mohd Daim</strong> — Timbalan Pengarah Akademik
+  </div>
+</div>
+</div>
+
+<!-- TAB: TANGGUNGJAWAB -->
+<div class="section" id="tab-tanggung">
+  <div class="tanggung-grid">
+    <div class="tanggung-card">
+      <div class="t-icon">📚</div>
+      <h4>Pembangunan Kandungan Digital</h4>
+      <ul>
+        <li>Membangun dan menyelenggara modul eLearning</li>
+        <li>Menghasilkan video pengajaran berkualiti</li>
+        <li>Membangunkan eBook dan bahan digital</li>
+        <li>Memastikan kandungan mematuhi standard SCORM</li>
+        <li>Menyediakan templat reka bentuk instruksional</li>
+      </ul>
+    </div>
+    <div class="tanggung-card">
+      <div class="t-icon">🖥️</div>
+      <h4>Pengurusan Platform LMS</h4>
+      <ul>
+        <li>Mentadbir dan menyelenggara sistem LMS</li>
+        <li>Menguruskan akaun pengguna (pensyarah &amp; pelajar)</li>
+        <li>Memastikan ketersediaan dan kebolehpercayaan platform</li>
+        <li>Memuat naik dan mengurus kursus dalam talian</li>
+        <li>Menganalisis data penggunaan platform</li>
+      </ul>
+    </div>
+    <div class="tanggung-card">
+      <div class="t-icon">🔧</div>
+      <h4>Sokongan Teknikal ICT</h4>
+      <ul>
+        <li>Menyelenggara peralatan TECC 1, TECC 3 &amp; Hybrid Classroom</li>
+        <li>Menguruskan tempahan dan penggunaan bilik</li>
+        <li>Menyediakan bantuan teknikal kepada pengguna</li>
+        <li>Memastikan infrastruktur rangkaian berfungsi</li>
+        <li>Menyelesaikan masalah teknikal dengan segera</li>
+      </ul>
+    </div>
+    <div class="tanggung-card">
+      <div class="t-icon">🎓</div>
+      <h4>Latihan &amp; Pembangunan</h4>
+      <ul>
+        <li>Merancang dan melaksanakan bengkel eLearning</li>
+        <li>Melatih pensyarah menggunakan platform LMS</li>
+        <li>Membangunkan kemahiran digital warga PKK</li>
+        <li>Menjalankan sesi orientasi untuk pengguna baharu</li>
+        <li>Menyediakan panduan dan manual pengguna</li>
+      </ul>
+    </div>
+    <div class="tanggung-card">
+      <div class="t-icon">📊</div>
+      <h4>Pemantauan &amp; Pelaporan</h4>
+      <ul>
+        <li>Memantau pencapaian KPI eLearning</li>
+        <li>Menyediakan laporan bulanan dan tahunan</li>
+        <li>Menganalisis keberkesanan pengajaran digital</li>
+        <li>Mengemaskini data dan rekod unit</li>
+        <li>Menyediakan laporan kepada pihak pengurusan</li>
+      </ul>
+    </div>
+    <div class="tanggung-card">
+      <div class="t-icon">🤝</div>
+      <h4>Kerjasama &amp; Jaringan</h4>
+      <ul>
+        <li>Menjalin kerjasama dengan politeknik lain</li>
+        <li>Menghadiri persidangan dan seminar berkaitan</li>
+        <li>Berkongsi amalan terbaik eLearning</li>
+        <li>Bekerjasama dengan industri teknologi pendidikan</li>
+        <li>Menyertai program peningkatan kompetensi</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="contact-bar">
+    <div class="contact-item"><span class="contact-icon">📞</span><span><strong>Telefon:</strong> 088-XXX XXX</span></div>
+    <div class="contact-item"><span class="contact-icon">📧</span><span><strong>Email:</strong> elearning@pkk.edu.my</span></div>
+    <div class="contact-item"><span class="contact-icon">🕐</span><span><strong>Waktu Operasi:</strong> Isnin – Jumaat, 8:00 pg – 5:00 ptg</span></div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 Unit eLearning — Politeknik Kota Kinabalu (PKK)</p>
+</footer>
+
+<script>
+function showTab(tabId, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

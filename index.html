@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit eLearning PKK — Politeknik Kota Kinabalu</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f0f4f8; color: #1f2328; font-size: 14px; line-height: 1.6; }
+
+  /* HEADER */
+  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 16px; justify-content: center; }
+  .header-logos { display: flex; align-items: center; gap: 12px; }
+  .header-logos img { height: 56px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; }
+  .header-text { text-align: center; }
+  .header-text h1 { font-size: 22px; font-weight: 700; }
+  .header-text p { font-size: 13px; color: #a8c4e0; margin-top: 2px; }
+
+  /* NAV */
+  nav { background: #112d4a; border-bottom: 2px solid #2e6da4; }
+  nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; gap: 0; margin: 0; padding: 0; }
+  nav ul li a { display: block; padding: 13px 22px; color: #a8c4e0; text-decoration: none; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; transition: background 0.15s, color 0.15s; }
+  nav ul li a:hover, nav ul li a.active { background: #1a3a5c; color: white; }
+  nav ul li a.active { border-bottom: 3px solid #fbbf24; }
+
+  /* HERO */
+  .hero { background: linear-gradient(135deg, #1a3a5c 0%, #2e6da4 100%); color: white; padding: 60px 32px; text-align: center; }
+  .hero h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+  .hero p { font-size: 16px; color: #cce0f5; max-width: 600px; margin: 0 auto 28px; }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: #fbbf24; color: #1a3a5c; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; }
+  .btn-secondary { background: transparent; color: white; border: 2px solid white; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; }
+  .btn-primary:hover { background: #f0a500; }
+  .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+  /* MENU CARDS */
+  .section { padding: 48px 32px; max-width: 1100px; margin: 0 auto; }
+  .section-title { font-size: 20px; font-weight: 700; color: #1a3a5c; margin-bottom: 24px; text-align: center; }
+  .section-title span { display: block; font-size: 13px; font-weight: 400; color: #57606a; margin-top: 4px; }
+  .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+  .menu-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 28px 24px; text-align: center; text-decoration: none; color: inherit; transition: box-shadow 0.2s, transform 0.2s; display: block; }
+  .menu-card:hover { box-shadow: 0 6px 24px rgba(26,58,92,0.12); transform: translateY(-3px); }
+  .menu-card .icon { font-size: 40px; margin-bottom: 12px; display: block; }
+  .menu-card h3 { font-size: 15px; font-weight: 700; color: #1a3a5c; margin-bottom: 6px; }
+  .menu-card p { font-size: 12px; color: #57606a; line-height: 1.5; }
+  .menu-card .badge { display: inline-block; margin-top: 12px; background: #f0f4f8; color: #1a3a5c; border-radius: 20px; padding: 3px 12px; font-size: 11px; font-weight: 600; }
+
+  /* STATS BAR */
+  .stats-bar { background: #1a3a5c; color: white; padding: 24px 32px; }
+  .stats-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; text-align: center; }
+  .stat-item .num { font-size: 28px; font-weight: 800; color: #fbbf24; }
+  .stat-item .lbl { font-size: 12px; color: #a8c4e0; margin-top: 2px; }
+
+  /* FOOTER */
+  footer { background: #0d2137; color: #7a9ab8; text-align: center; padding: 16px 32px; font-size: 12px; border-top: 1px solid #1a3a5c; }
+  footer a { color: #a8c4e0; text-decoration: none; }
+
+  @media(max-width:600px) {
+    .hero h2 { font-size: 22px; }
+    .header { flex-wrap: wrap; gap: 10px; }
+    nav ul li a { padding: 10px 14px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logos">
+    <img src="../Logo Politeknik Kota Kinabalu.png" alt="Logo PKK" onerror="this.style.display='none'">
+    <img src="../Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
+  </div>
+  <div class="header-text">
+    <h1>Unit eLearning</h1>
+    <p>Politeknik Kota Kinabalu (PKK)</p>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="index.html" class="active">🏠 Utama</a></li>
+    <li><a href="unit.html">🏢 Tentang Unit</a></li>
+    <li><a href="tempahan.html">📅 Tempahan Bilik</a></li>
+    <li><a href="aktiviti.html">🖼️ Aktiviti</a></li>
+    <li><a href="kpi.html">📊 Dashboard KPI</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <h2>Selamat Datang ke Portal<br>Unit eLearning PKK</h2>
+  <p>Pusat rujukan, tempahan kemudahan, dan pemantauan prestasi Unit eLearning Politeknik Kota Kinabalu.</p>
+  <div class="hero-btns">
+    <a href="tempahan.html" class="btn-primary">📅 Buat Tempahan Bilik</a>
+    <a href="unit.html" class="btn-secondary">🏢 Tentang Unit Kami</a>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="num">3</div>
+      <div class="lbl">Bilik Tersedia</div>
+    </div>
+    <div class="stat-item">
+      <div class="num" id="stat-pending">—</div>
+      <div class="lbl">Tempahan Bulan Ini</div>
+    </div>
+    <div class="stat-item">
+      <div class="num">2026</div>
+      <div class="lbl">Tahun Semasa</div>
+    </div>
+    <div class="stat-item">
+      <div class="num">KPI 14</div>
+      <div class="lbl">Pemantauan Aktif</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    Navigasi Pantas
+    <span>Pilih bahagian yang ingin anda lawati</span>
+  </div>
+  <div class="menu-grid">
+    <a href="tempahan.html" class="menu-card">
+      <span class="icon">📅</span>
+      <h3>Tempahan Bilik</h3>
+      <p>Buat permohonan tempahan TECC 1, TECC 3 atau Hybrid Classroom.</p>
+      <span class="badge">3 Bilik Tersedia</span>
+    </a>
+    <a href="unit.html" class="menu-card">
+      <span class="icon">🏢</span>
+      <h3>Tentang Unit</h3>
+      <p>Carta organisasi, info unit, dan tanggungjawab Unit eLearning PKK.</p>
+      <span class="badge">Carta Org & Info</span>
+    </a>
+    <a href="aktiviti.html" class="menu-card">
+      <span class="icon">🖼️</span>
+      <h3>Galeri Aktiviti</h3>
+      <p>Koleksi gambar dan penerangan aktiviti yang dijalankan oleh unit.</p>
+      <span class="badge">Galeri Gambar</span>
+    </a>
+    <a href="kpi.html" class="menu-card">
+      <span class="icon">📊</span>
+      <h3>Dashboard KPI</h3>
+      <p>Pemantauan pencapaian KPI 14 Unit eLearning PKK 2026.</p>
+      <span class="badge">KPI 14 — 2026</span>
+    </a>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 Unit eLearning — Politeknik Kota Kinabalu (PKK) &nbsp;|&nbsp; <a href="mailto:elearning@pkk.edu.my">elearning@pkk.edu.my</a></p>
+</footer>
+
+<script>
+  // Load tempahan count from localStorage
+  try {
+    const data = JSON.parse(localStorage.getItem('elearning_tempahan') || '[]');
+    const now = new Date();
+    const thisMonth = data.filter(t => {
+      const d = new Date(t.tarikh);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    document.getElementById('stat-pending').textContent = thisMonth.length;
+  } catch(e) {}
+</script>
+
+</body>
+</html>

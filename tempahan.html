@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tempahan Bilik — Unit eLearning PKK</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f0f4f8; color: #1f2328; font-size: 14px; line-height: 1.6; }
+
+  /* HEADER */
+  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 16px; justify-content: center; }
+  .header-logos img { height: 56px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; margin: 0 6px; }
+  .header-text { text-align: center; }
+  .header-text h1 { font-size: 20px; font-weight: 700; }
+  .header-text p { font-size: 13px; color: #a8c4e0; margin-top: 2px; }
+
+  /* NAV */
+  nav { background: #112d4a; border-bottom: 2px solid #2e6da4; }
+  nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; margin: 0; padding: 0; }
+  nav ul li a { display: block; padding: 13px 22px; color: #a8c4e0; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.15s, color 0.15s; }
+  nav ul li a:hover, nav ul li a.active { background: #1a3a5c; color: white; }
+  nav ul li a.active { border-bottom: 3px solid #fbbf24; }
+
+  /* PAGE HEADER */
+  .page-header { background: #1a3a5c; color: white; padding: 28px 32px; text-align: center; }
+  .page-header h2 { font-size: 24px; font-weight: 700; }
+  .page-header p { color: #a8c4e0; margin-top: 6px; font-size: 13px; }
+
+  /* LAYOUT */
+  .main { max-width: 1200px; margin: 0 auto; padding: 28px 20px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
+
+  /* BILIK CARDS */
+  .bilik-section h3 { font-size: 16px; font-weight: 700; color: #1a3a5c; margin-bottom: 14px; }
+  .bilik-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .bilik-card { background: white; border: 2px solid #e5e7eb; border-radius: 10px; padding: 16px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+  .bilik-card:hover { border-color: #2e6da4; box-shadow: 0 2px 12px rgba(26,58,92,0.1); }
+  .bilik-card.selected { border-color: #1a3a5c; background: #f0f4f8; }
+  .bilik-card input[type=radio] { display: none; }
+  .bilik-card-inner { display: flex; align-items: center; gap: 14px; }
+  .bilik-icon { font-size: 28px; flex-shrink: 0; }
+  .bilik-info h4 { font-size: 14px; font-weight: 700; color: #1a3a5c; }
+  .bilik-info p { font-size: 12px; color: #57606a; margin-top: 2px; }
+  .bilik-tag { display: inline-block; margin-top: 6px; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; }
+  .tag-available { background: #dcfce7; color: #166534; }
+  .tag-booked { background: #fee2e2; color: #991b1b; }
+
+  /* FORM */
+  .form-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
+  .form-card-header { background: #1a3a5c; color: white; padding: 16px 20px; }
+  .form-card-header h3 { font-size: 15px; font-weight: 700; }
+  .form-card-header p { font-size: 12px; color: #a8c4e0; margin-top: 2px; }
+  .form-body { padding: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: #1a3a5c; margin-bottom: 6px; }
+  .form-group label span { color: #e05252; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 10px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+    font-size: 13px; font-family: inherit; background: white; color: #1f2328;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: #2e6da4;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .submit-btn { width: 100%; background: #1a3a5c; color: white; border: none; padding: 13px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-top: 4px; }
+  .submit-btn:hover { background: #2e6da4; }
+  .submit-btn:disabled { background: #93a8c0; cursor: not-allowed; }
+
+  /* SUCCESS MESSAGE */
+  .success-msg { display: none; background: #dcfce7; border: 1.5px solid #86efac; border-radius: 8px; padding: 14px 16px; margin-top: 14px; color: #166534; font-size: 13px; }
+  .success-msg strong { display: block; font-size: 14px; margin-bottom: 4px; }
+  .error-msg { display: none; background: #fee2e2; border: 1.5px solid #fca5a5; border-radius: 8px; padding: 14px 16px; margin-top: 14px; color: #991b1b; font-size: 13px; }
+
+  /* CALENDAR SECTION */
+  .calendar-section { margin-top: 32px; background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
+  .calendar-header { background: #1a3a5c; color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .calendar-header h3 { font-size: 15px; font-weight: 700; }
+  .cal-nav { display: flex; align-items: center; gap: 12px; }
+  .cal-nav button { background: rgba(255,255,255,0.15); border: none; color: white; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .cal-nav button:hover { background: rgba(255,255,255,0.3); }
+  .cal-nav span { font-size: 14px; font-weight: 600; min-width: 140px; text-align: center; }
+  .calendar-legend { padding: 10px 24px; display: flex; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid #e5e7eb; background: #f8fafc; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #57606a; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .legend-tecc1 { background: #3b82f6; }
+  .legend-tecc3 { background: #8b5cf6; }
+  .legend-hybrid { background: #f59e0b; }
+  .legend-pending { background: #94a3b8; }
+  .cal-grid-wrap { padding: 16px 24px 20px; overflow-x: auto; }
+  .cal-days-header { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; margin-bottom: 6px; }
+  .cal-days-header span { font-size: 11px; font-weight: 700; color: #57606a; padding: 4px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+  .cal-cell { min-height: 70px; border: 1px solid #f0f4f8; border-radius: 6px; padding: 4px; }
+  .cal-cell.other-month { background: #fafafa; }
+  .cal-cell.today { border-color: #2e6da4; background: #eff6ff; }
+  .cal-date { font-size: 11px; font-weight: 700; color: #57606a; margin-bottom: 3px; }
+  .cal-cell.today .cal-date { color: #1a3a5c; }
+  .cal-event { border-radius: 3px; padding: 2px 5px; font-size: 9px; font-weight: 600; color: white; margin-bottom: 2px; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ev-tecc1 { background: #3b82f6; }
+  .ev-tecc3 { background: #8b5cf6; }
+  .ev-hybrid { background: #f59e0b; color: #1f2328; }
+  .ev-pending { background: #94a3b8; }
+
+  /* SENARAI TEMPAHAN */
+  .list-section { max-width: 1200px; margin: 0 auto 32px; padding: 0 20px; }
+  .list-section h3 { font-size: 16px; font-weight: 700; color: #1a3a5c; margin-bottom: 14px; }
+  .list-table-wrap { background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { background: #1a3a5c; color: white; padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid #f0f4f8; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody td { padding: 10px 12px; }
+  .status-badge { border-radius: 20px; padding: 3px 10px; font-size: 10px; font-weight: 700; }
+  .status-pending { background: #fef9c3; color: #854d0e; }
+  .status-approved { background: #dcfce7; color: #166534; }
+  .status-rejected { background: #fee2e2; color: #991b1b; }
+  .empty-state { text-align: center; padding: 32px; color: #57606a; font-size: 13px; }
+
+  /* TOOLTIP */
+  .tooltip-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+  .tooltip-overlay.show { display: flex; }
+  .tooltip-box { background: white; border-radius: 12px; padding: 24px; max-width: 380px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .tooltip-box h4 { font-size: 15px; font-weight: 700; color: #1a3a5c; margin-bottom: 12px; }
+  .tooltip-row { display: flex; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+  .tooltip-row strong { min-width: 80px; color: #57606a; }
+  .close-btn { margin-top: 16px; background: #1a3a5c; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+
+  footer { background: #0d2137; color: #7a9ab8; text-align: center; padding: 16px 32px; font-size: 12px; border-top: 1px solid #1a3a5c; margin-top: 24px; }
+
+  @media(max-width:768px) {
+    .main { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .header { flex-wrap: wrap; }
+    nav ul li a { padding: 10px 12px; font-size: 12px; }
+    .cal-cell { min-height: 50px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logos">
+    <img src="../Logo Politeknik Kota Kinabalu.png" alt="Logo PKK" onerror="this.style.display='none'">
+    <img src="../Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
+  </div>
+  <div class="header-text">
+    <h1>Unit eLearning</h1>
+    <p>Politeknik Kota Kinabalu (PKK)</p>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="index.html">🏠 Utama</a></li>
+    <li><a href="unit.html">🏢 Tentang Unit</a></li>
+    <li><a href="tempahan.html" class="active">📅 Tempahan Bilik</a></li>
+    <li><a href="aktiviti.html">🖼️ Aktiviti</a></li>
+    <li><a href="kpi.html">📊 Dashboard KPI</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <h2>📅 Permohonan Tempahan Bilik</h2>
+  <p>Isi borang di bawah untuk membuat tempahan TECC 1, TECC 3 atau Hybrid Classroom</p>
+</div>
+
+<div class="main">
+  <!-- LEFT: BILIK SELECTION + FORM -->
+  <div>
+    <div class="bilik-section">
+      <h3>Pilih Bilik</h3>
+      <div class="bilik-cards" id="bilik-cards">
+        <label class="bilik-card selected" id="card-tecc1">
+          <input type="radio" name="bilik" value="TECC 1" checked onchange="selectBilik(this)">
+          <div class="bilik-card-inner">
+            <span class="bilik-icon">🖥️</span>
+            <div class="bilik-info">
+              <h4>TECC 1</h4>
+              <p>Technology Enhanced Classroom 1</p>
+              <span class="bilik-tag tag-available" id="tag-tecc1">● Tersedia</span>
+            </div>
+          </div>
+        </label>
+        <label class="bilik-card" id="card-tecc3">
+          <input type="radio" name="bilik" value="TECC 3" onchange="selectBilik(this)">
+          <div class="bilik-card-inner">
+            <span class="bilik-icon">💻</span>
+            <div class="bilik-info">
+              <h4>TECC 3</h4>
+              <p>Technology Enhanced Classroom 3</p>
+              <span class="bilik-tag tag-available" id="tag-tecc3">● Tersedia</span>
+            </div>
+          </div>
+        </label>
+        <label class="bilik-card" id="card-hybrid">
+          <input type="radio" name="bilik" value="Hybrid Classroom" onchange="selectBilik(this)">
+          <div class="bilik-card-inner">
+            <span class="bilik-icon">🎓</span>
+            <div class="bilik-info">
+              <h4>Hybrid Classroom</h4>
+              <p>Bilik kuliah hibrid berkemampuan tinggi</p>
+              <span class="bilik-tag tag-available" id="tag-hybrid">● Tersedia</span>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-header">
+        <h3>📝 Borang Permohonan Tempahan</h3>
+        <p>Sila isi semua maklumat yang diperlukan</p>
+      </div>
+      <div class="form-body">
+        <form id="tempahan-form" onsubmit="submitTempahan(event)">
+          <div class="form-group">
+            <label>Nama Penuh <span>*</span></label>
+            <input type="text" id="nama" placeholder="Contoh: Ahmad bin Abdullah" required>
+          </div>
+          <div class="form-group">
+            <label>No. Telefon <span>*</span></label>
+            <input type="tel" id="notel" placeholder="Contoh: 0123456789" pattern="[0-9]{10,11}" required>
+          </div>
+          <div class="form-group">
+            <label>Jawatan / Jabatan</label>
+            <input type="text" id="jawatan" placeholder="Contoh: Pensyarah / Jabatan Kejuruteraan">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tarikh Tempahan <span>*</span></label>
+              <input type="date" id="tarikh" required>
+            </div>
+            <div class="form-group">
+              <label>Masa Mula <span>*</span></label>
+              <input type="time" id="masa-mula" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Masa Tamat <span>*</span></label>
+              <input type="time" id="masa-tamat" required>
+            </div>
+            <div class="form-group">
+              <label>Bilik Dipilih</label>
+              <input type="text" id="bilik-display" value="TECC 1" readonly style="background:#f8fafc; font-weight:700; color:#1a3a5c;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Tujuan Tempahan <span>*</span></label>
+            <textarea id="tujuan" placeholder="Huraikan tujuan penggunaan bilik secara ringkas..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Anggaran Bilangan Peserta</label>
+            <input type="number" id="peserta" placeholder="Contoh: 30" min="1" max="200">
+          </div>
+          <button type="submit" class="submit-btn" id="submit-btn">📨 Hantar Permohonan</button>
+        </form>
+        <div class="success-msg" id="success-msg">
+          <strong>✅ Permohonan Berjaya Dihantar!</strong>
+          Terima kasih. Permohonan anda telah diterima dan sedang menunggu kelulusan. Anda akan dihubungi oleh pihak unit.
+        </div>
+        <div class="error-msg" id="error-msg">
+          ❌ Ralat: Sila semak sambungan internet anda dan cuba lagi.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: CALENDAR -->
+  <div>
+    <div class="calendar-section">
+      <div class="calendar-header">
+        <h3>📆 Kalendar Penggunaan Bilik</h3>
+        <div class="cal-nav">
+          <button onclick="prevMonth()">&#8249;</button>
+          <span id="cal-month-label"></span>
+          <button onclick="nextMonth()">&#8250;</button>
+        </div>
+      </div>
+      <div class="calendar-legend">
+        <div class="legend-item"><div class="legend-dot legend-tecc1"></div> TECC 1</div>
+        <div class="legend-item"><div class="legend-dot legend-tecc3"></div> TECC 3</div>
+        <div class="legend-item"><div class="legend-dot legend-hybrid"></div> Hybrid Classroom</div>
+        <div class="legend-item"><div class="legend-dot legend-pending"></div> Menunggu Kelulusan</div>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="cal-days-header">
+          <span>Ahd</span><span>Isn</span><span>Sel</span><span>Rab</span><span>Kha</span><span>Jum</span><span>Sab</span>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SENARAI TEMPAHAN -->
+<div class="list-section">
+  <h3>📋 Senarai Permohonan Tempahan</h3>
+  <div class="list-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Tarikh</th>
+          <th>Masa</th>
+          <th>Bilik</th>
+          <th>Nama Pemohon</th>
+          <th>Tujuan</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tempahan-list"></tbody>
+    </table>
+    <div class="empty-state" id="empty-state">Tiada rekod tempahan. Jadilah yang pertama membuat tempahan!</div>
+  </div>
+</div>
+
+<!-- TOOLTIP OVERLAY -->
+<div class="tooltip-overlay" id="tooltip-overlay" onclick="closeTooltip()">
+  <div class="tooltip-box" onclick="event.stopPropagation()">
+    <h4 id="tt-bilik">—</h4>
+    <div class="tooltip-row"><strong>Pemohon:</strong><span id="tt-nama">—</span></div>
+    <div class="tooltip-row"><strong>Tarikh:</strong><span id="tt-tarikh">—</span></div>
+    <div class="tooltip-row"><strong>Masa:</strong><span id="tt-masa">—</span></div>
+    <div class="tooltip-row"><strong>Tujuan:</strong><span id="tt-tujuan">—</span></div>
+    <div class="tooltip-row"><strong>Status:</strong><span id="tt-status">—</span></div>
+    <button class="close-btn" onclick="closeTooltip()">Tutup</button>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 Unit eLearning — Politeknik Kota Kinabalu (PKK)</p>
+</footer>
+
+<script>
+// =================== CONFIG ===================
+// Gantikan URL ini dengan URL Apps Script anda selepas deploy
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznm1WzspDvItrHznZw8abYPLyZc_NoH7sPD2uTwcMfSYUArYjbAfAPASDLn-FMOK01/exec';
+
+// =================== STATE ===================
+let selectedBilik = 'TECC 1';
+let calYear, calMonth;
+const today = new Date();
+calYear = today.getFullYear();
+calMonth = today.getMonth();
+
+// Set minimum date to today
+document.getElementById('tarikh').min = today.toISOString().split('T')[0];
+
+// =================== BILIK SELECTION ===================
+function selectBilik(radio) {
+  selectedBilik = radio.value;
+  document.getElementById('bilik-display').value = selectedBilik;
+  document.querySelectorAll('.bilik-card').forEach(c => c.classList.remove('selected'));
+  radio.closest('.bilik-card').classList.add('selected');
+  renderCalendar();
+}
+
+// =================== FORM SUBMIT ===================
+function submitTempahan(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  const masaMula = document.getElementById('masa-mula').value;
+  const masaTamat = document.getElementById('masa-tamat').value;
+
+  if (masaMula >= masaTamat) {
+    alert('Masa tamat mesti lebih lewat daripada masa mula.');
+    return;
+  }
+
+  const data = {
+    nama: document.getElementById('nama').value,
+    notel: document.getElementById('notel').value,
+    jawatan: document.getElementById('jawatan').value,
+    tarikh: document.getElementById('tarikh').value,
+    masaMula: masaMula,
+    masaTamat: masaTamat,
+    bilik: selectedBilik,
+    tujuan: document.getElementById('tujuan').value,
+    peserta: document.getElementById('peserta').value || '—',
+    status: 'Menunggu',
+    timestamp: new Date().toISOString()
+  };
+
+  // Semak pertindihan tarikh + bilik
+  const existing = getTempahanData();
+  const clash = existing.find(t =>
+    t.tarikh === data.tarikh &&
+    t.bilik === data.bilik &&
+    t.status !== 'Ditolak' &&
+    !(data.masaTamat <= t.masaMula || data.masaMula >= t.masaTamat)
+  );
+  if (clash) {
+    alert(`⚠️ ${data.bilik} telah ditempah pada ${formatDate(data.tarikh)} dari ${clash.masaMula} - ${clash.masaTamat} oleh ${clash.nama}.\n\nSila pilih masa atau bilik lain.`);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Menghantar...';
+
+  // Simpan ke localStorage
+  existing.push(data);
+  localStorage.setItem('elearning_tempahan', JSON.stringify(existing));
+
+  // Cuba hantar ke Google Apps Script (jika URL dikonfigurasi)
+  if (APPS_SCRIPT_URL.includes('GANTI_URL')) {
+    showSuccess();
+    btn.disabled = false;
+    btn.textContent = '📨 Hantar Permohonan';
+    return;
+  }
+
+  const formData = new FormData();
+  Object.keys(data).forEach(k => formData.append(k, data[k]));
+
+  fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(() => {
+      showSuccess();
+    })
+    .catch(() => {
+      // Tetap tunjuk success kerana dah simpan dalam localStorage
+      showSuccess();
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = '📨 Hantar Permohonan';
+    });
+}
+
+function showSuccess() {
+  document.getElementById('success-msg').style.display = 'block';
+  document.getElementById('error-msg').style.display = 'none';
+  document.getElementById('tempahan-form').reset();
+  document.getElementById('bilik-display').value = 'TECC 1';
+  selectedBilik = 'TECC 1';
+  document.querySelectorAll('.bilik-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-tecc1').classList.add('selected');
+  renderCalendar();
+  renderList();
+  setTimeout(() => { document.getElementById('success-msg').style.display = 'none'; }, 6000);
+}
+
+// =================== DATA ===================
+function getTempahanData() {
+  try { return JSON.parse(localStorage.getItem('elearning_tempahan') || '[]'); } catch { return []; }
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// =================== CALENDAR ===================
+const monthNames = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = `${monthNames[calMonth]} ${calYear}`;
+  const data = getTempahanData();
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  // Previous month cells
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell other-month';
+    cell.innerHTML = `<div class="cal-date" style="color:#ccc">${daysInPrev - i}</div>`;
+    grid.appendChild(cell);
+  }
+
+  // Current month cells
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div');
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = (calYear === today.getFullYear() && calMonth === today.getMonth() && d === today.getDate());
+    cell.className = 'cal-cell' + (isToday ? ' today' : '');
+    cell.innerHTML = `<div class="cal-date">${d}</div>`;
+
+    const dayEvents = data.filter(t => t.tarikh === dateStr && t.status !== 'Ditolak');
+    dayEvents.forEach(t => {
+      const ev = document.createElement('div');
+      const cls = t.bilik === 'TECC 1' ? 'ev-tecc1' : t.bilik === 'TECC 3' ? 'ev-tecc3' : t.bilik === 'Hybrid Classroom' ? 'ev-hybrid' : 'ev-pending';
+      ev.className = `cal-event ${t.status === 'Menunggu' ? 'ev-pending' : cls}`;
+      ev.textContent = `${t.masaMula} ${t.bilik}`;
+      ev.title = `${t.bilik} — ${t.nama}`;
+      ev.onclick = () => showTooltip(t);
+      cell.appendChild(ev);
+    });
+
+    grid.appendChild(cell);
+  }
+
+  // Fill remaining cells
+  const total = firstDay + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let i = 1; i <= remaining; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell other-month';
+    cell.innerHTML = `<div class="cal-date" style="color:#ccc">${i}</div>`;
+    grid.appendChild(cell);
+  }
+}
+
+function prevMonth() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function nextMonth() {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+// =================== TOOLTIP ===================
+function showTooltip(t) {
+  document.getElementById('tt-bilik').textContent = t.bilik;
+  document.getElementById('tt-nama').textContent = t.nama;
+  document.getElementById('tt-tarikh').textContent = formatDate(t.tarikh);
+  document.getElementById('tt-masa').textContent = `${t.masaMula} — ${t.masaTamat}`;
+  document.getElementById('tt-tujuan').textContent = t.tujuan;
+  document.getElementById('tt-status').textContent = t.status;
+  document.getElementById('tooltip-overlay').classList.add('show');
+}
+function closeTooltip() {
+  document.getElementById('tooltip-overlay').classList.remove('show');
+}
+
+// =================== LIST ===================
+function renderList() {
+  const data = getTempahanData();
+  const tbody = document.getElementById('tempahan-list');
+  const empty = document.getElementById('empty-state');
+
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const sorted = [...data].sort((a, b) => new Date(b.tarikh) - new Date(a.tarikh));
+  tbody.innerHTML = sorted.map((t, i) => `
+    <tr>
+      <td>${sorted.length - i}</td>
+      <td>${formatDate(t.tarikh)}</td>
+      <td>${t.masaMula} – ${t.masaTamat}</td>
+      <td><strong>${t.bilik}</strong></td>
+      <td>${t.nama}</td>
+      <td>${t.tujuan.length > 50 ? t.tujuan.substring(0,50) + '...' : t.tujuan}</td>
+      <td><span class="status-badge ${t.status === 'Lulus' ? 'status-approved' : t.status === 'Ditolak' ? 'status-rejected' : 'status-pending'}">${t.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+// =================== INIT ===================
+renderCalendar();
+renderList();
+</script>
+</body>
+</html>
