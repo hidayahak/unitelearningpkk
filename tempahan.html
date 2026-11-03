@@ -228,23 +228,30 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Tarikh Tempahan <span>*</span></label>
+              <label>Tarikh Mula <span>*</span></label>
               <input type="date" id="tarikh" required>
             </div>
             <div class="form-group">
-              <label>Masa Mula <span>*</span></label>
-              <input type="time" id="masa-mula" required>
+              <label>Tarikh Tamat <span>*</span></label>
+              <input type="date" id="tarikh-tamat" required>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
+              <label>Masa Mula <span>*</span></label>
+              <input type="time" id="masa-mula" required>
+            </div>
+            <div class="form-group">
               <label>Masa Tamat <span>*</span></label>
               <input type="time" id="masa-tamat" required>
             </div>
+          </div>
+          <div class="form-row">
             <div class="form-group">
               <label>Bilik Dipilih</label>
               <input type="text" id="bilik-display" value="TECC 1" readonly style="background:#f8fafc; font-weight:700; color:#1a3a5c;">
             </div>
+            <div class="form-group"></div>
           </div>
           <div class="form-group">
             <label>Tujuan Tempahan <span>*</span></label>
@@ -350,7 +357,16 @@ let calYear, calMonth;
 const today = new Date();
 calYear = today.getFullYear();
 calMonth = today.getMonth();
-document.getElementById('tarikh').min = today.toISOString().split('T')[0];
+const todayStr = today.toISOString().split('T')[0];
+document.getElementById('tarikh').min = todayStr;
+document.getElementById('tarikh-tamat').min = todayStr;
+
+// Auto set tarikh tamat sama dengan tarikh mula bila tarikh mula berubah
+document.getElementById('tarikh').addEventListener('change', function() {
+  const tt = document.getElementById('tarikh-tamat');
+  tt.min = this.value;
+  if (!tt.value || tt.value < this.value) tt.value = this.value;
+});
 
 // =================== BILIK SELECTION ===================
 function pilihBilik(nama, el) {
@@ -363,32 +379,61 @@ function selectBilik(radio) { pilihBilik(radio.value, radio.closest('.bilik-card
 
 // =================== FORMAT DATE ===================
 function formatDate(str) {
-  if (!str) return '—';
-  const d = new Date(str + 'T00:00:00');
+  if (!str || str === '') return '—';
+  let d;
+  // Sheet kadang hantar tarikh sebagai "Mon Nov 03 2026 ..." atau "2026-11-03"
+  if (typeof str === 'string' && str.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    d = new Date(str + 'T00:00:00');
+  } else {
+    d = new Date(str);
+  }
+  if (isNaN(d.getTime())) return str; // return as-is if can't parse
   return d.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// Tukar sebarang format tarikh ke YYYY-MM-DD
+function toDateStr(val) {
+  if (!val || val === '') return '';
+  if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/)) return val;
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return val;
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
 }
 
 // =================== SUBMIT BORANG ===================
 function submitTempahan(e) {
   e.preventDefault();
   const btn = document.getElementById('submit-btn');
-  const masaMula = document.getElementById('masa-mula').value;
-  const masaTamat = document.getElementById('masa-tamat').value;
+  const tarikhMula  = document.getElementById('tarikh').value;
+  const tarikhTamat = document.getElementById('tarikh-tamat').value;
+  const masaMula    = document.getElementById('masa-mula').value;
+  const masaTamat   = document.getElementById('masa-tamat').value;
 
+  if (!tarikhMula || !tarikhTamat) {
+    alert('Sila isi Tarikh Mula dan Tarikh Tamat.');
+    return;
+  }
+  if (tarikhTamat < tarikhMula) {
+    alert('Tarikh Tamat tidak boleh lebih awal dari Tarikh Mula.');
+    return;
+  }
   if (masaMula >= masaTamat) {
-    alert('Masa tamat mesti lebih lewat daripada masa mula.');
+    alert('Masa Tamat mesti lebih lewat daripada Masa Mula.');
     return;
   }
 
   // Semak clash dari Sheet data
-  const clash = sheetData.find(t =>
-    t['Tarikh'] === document.getElementById('tarikh').value &&
-    t['Bilik'] === selectedBilik &&
-    t['Status'] !== 'Ditolak' &&
-    !(masaTamat <= t['Masa Mula'] || masaMula >= t['Masa Tamat'])
-  );
+  const clash = sheetData.find(t => {
+    const tMula  = toDateStr(t['Tarikh']);
+    const tTamat = toDateStr(t['Tarikh Tamat'] || t['Tarikh']);
+    return t['Bilik'] === selectedBilik &&
+      t['Status'] !== 'Ditolak' &&
+      !(tarikhMula > tTamat || tarikhTamat < tMula);
+  });
   if (clash) {
-    alert(`⚠️ ${selectedBilik} telah ditempah pada tarikh tersebut dari ${clash['Masa Mula']} - ${clash['Masa Tamat']} oleh ${clash['Nama']}.\n\nSila pilih masa atau bilik lain.`);
+    alert(`⚠️ ${selectedBilik} telah ditempah dari ${formatDate(clash['Tarikh'])} - ${formatDate(clash['Tarikh Tamat'] || clash['Tarikh'])} oleh ${clash['Nama']}.\n\nSila pilih tarikh atau bilik lain.`);
     return;
   }
 
@@ -399,7 +444,8 @@ function submitTempahan(e) {
     nama: document.getElementById('nama').value,
     notel: document.getElementById('notel').value,
     jawatan: document.getElementById('jawatan').value,
-    tarikh: document.getElementById('tarikh').value,
+    tarikh: tarikhMula,
+    tarikhTamat: tarikhTamat,
     masaMula: masaMula,
     masaTamat: masaTamat,
     bilik: selectedBilik,
@@ -507,7 +553,11 @@ function renderCalendar(data) {
     cell.className = 'cal-cell' + (isToday ? ' today' : '');
     cell.innerHTML = `<div class="cal-date">${d}</div>`;
 
-    data.filter(t => t['Tarikh'] === dateStr && t['Status'] !== 'Ditolak').forEach(t => {
+    data.filter(t => {
+      const tMula  = toDateStr(t['Tarikh']);
+      const tTamat = toDateStr(t['Tarikh Tamat'] || t['Tarikh']);
+      return dateStr >= tMula && dateStr <= tTamat && t['Status'] !== 'Ditolak';
+    }).forEach(t => {
       const ev = document.createElement('div');
       const b = t['Bilik'] || '';
       const cls = b === 'TECC 1' ? 'ev-tecc1' : b === 'TECC 3' ? 'ev-tecc3' : b === 'Hybrid Classroom' ? 'ev-hybrid' : 'ev-pending';
@@ -536,7 +586,9 @@ function nextMonth() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++;
 function showTooltip(t) {
   document.getElementById('tt-bilik').textContent = t['Bilik'] || '—';
   document.getElementById('tt-nama').textContent = t['Nama'] || '—';
-  document.getElementById('tt-tarikh').textContent = formatDate(t['Tarikh']);
+  const tMula  = formatDate(toDateStr(t['Tarikh']));
+  const tTamat = t['Tarikh Tamat'] ? formatDate(toDateStr(t['Tarikh Tamat'])) : tMula;
+  document.getElementById('tt-tarikh').textContent = tMula === tTamat ? tMula : `${tMula} — ${tTamat}`;
   document.getElementById('tt-masa').textContent = `${t['Masa Mula']} — ${t['Masa Tamat']}`;
   document.getElementById('tt-tujuan').textContent = t['Tujuan'] || '—';
   document.getElementById('tt-status').textContent = t['Status'] || '—';
@@ -557,14 +609,17 @@ function renderList(data) {
   }
   empty.style.display = 'none';
 
-  const sorted = [...data].sort((a, b) => new Date(b['Tarikh']) - new Date(a['Tarikh']));
+  const sorted = [...data].sort((a, b) => new Date(toDateStr(b['Tarikh'])) - new Date(toDateStr(a['Tarikh'])));
   tbody.innerHTML = sorted.map((t, i) => {
-    const st = t['Status'] || 'Menunggu';
+    const st  = t['Status'] || 'Menunggu';
     const cls = st === 'Lulus' ? 'status-approved' : st === 'Ditolak' ? 'status-rejected' : 'status-pending';
-    const tj = (t['Tujuan'] || '');
+    const tj  = (t['Tujuan'] || '');
+    const tMula  = formatDate(toDateStr(t['Tarikh']));
+    const tTamat = t['Tarikh Tamat'] ? formatDate(toDateStr(t['Tarikh Tamat'])) : tMula;
+    const tarikhPapar = tMula === tTamat ? tMula : `${tMula} —<br>${tTamat}`;
     return `<tr>
       <td>${sorted.length - i}</td>
-      <td>${formatDate(t['Tarikh'])}</td>
+      <td>${tarikhPapar}</td>
       <td>${t['Masa Mula']} – ${t['Masa Tamat']}</td>
       <td><strong>${t['Bilik']}</strong></td>
       <td>${t['Nama']}</td>
