@@ -8,8 +8,8 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f0f4f8; color: #1f2328; font-size: 14px; line-height: 1.6; }
 
-  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 16px; justify-content: center; }
-  .header-logos img { height: 56px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; margin: 0 6px; }
+  .header { background: #1a3a5c; color: white; padding: 16px 32px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; }
+  .header-logo img { height: 60px; width: auto; background: white; border-radius: 6px; padding: 4px 8px; object-fit: contain; }
   .header-text { text-align: center; }
   .header-text h1 { font-size: 20px; font-weight: 700; }
   .header-text p { font-size: 13px; color: #a8c4e0; margin-top: 2px; }
@@ -95,13 +95,15 @@
 <body>
 
 <header class="header">
-  <div class="header-logos">
+  <div class="header-logo">
     <img src="Logo Politeknik Kota Kinabalu.png" alt="Logo PKK" onerror="this.style.display='none'">
-    <img src="Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
   </div>
   <div class="header-text">
     <h1>Unit eLearning</h1>
     <p>Politeknik Kota Kinabalu (PKK)</p>
+  </div>
+  <div class="header-logo">
+    <img src="Logo eLearning Polikk.png" alt="Logo eLearning" onerror="this.style.display='none'">
   </div>
 </header>
 
