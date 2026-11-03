@@ -33,10 +33,10 @@
   /* BILIK CARDS */
   .bilik-section h3 { font-size: 16px; font-weight: 700; color: #1a3a5c; margin-bottom: 14px; }
   .bilik-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-  .bilik-card { background: white; border: 2px solid #e5e7eb; border-radius: 10px; padding: 16px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+  .bilik-card { background: white; border: 2px solid #e5e7eb; border-radius: 10px; padding: 16px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: block; font-size: inherit; font-weight: inherit; color: inherit; margin-bottom: 0; }
   .bilik-card:hover { border-color: #2e6da4; box-shadow: 0 2px 12px rgba(26,58,92,0.1); }
   .bilik-card.selected { border-color: #1a3a5c; background: #f0f4f8; }
-  .bilik-card input[type=radio] { display: none; }
+  .bilik-card input[type=radio] { display: none !important; width: auto; padding: 0; border: none; background: none; }
   .bilik-card-inner { display: flex; align-items: center; gap: 14px; }
   .bilik-icon { font-size: 28px; flex-shrink: 0; }
   .bilik-info h4 { font-size: 14px; font-weight: 700; color: #1a3a5c; }
@@ -54,12 +54,12 @@
   .form-group { margin-bottom: 16px; }
   .form-group label { display: block; font-size: 12px; font-weight: 600; color: #1a3a5c; margin-bottom: 6px; }
   .form-group label span { color: #e05252; }
-  .form-group input, .form-group select, .form-group textarea {
+  .form-group input:not([type=radio]):not([type=checkbox]), .form-group select, .form-group textarea {
     width: 100%; padding: 10px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px;
     font-size: 13px; font-family: inherit; background: white; color: #1f2328;
     transition: border-color 0.15s;
   }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  .form-group input:not([type=radio]):not([type=checkbox]):focus, .form-group select:focus, .form-group textarea:focus {
     outline: none; border-color: #2e6da4;
   }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -172,8 +172,7 @@
     <div class="bilik-section">
       <h3>Pilih Bilik</h3>
       <div class="bilik-cards" id="bilik-cards">
-        <label class="bilik-card selected" id="card-tecc1">
-          <input type="radio" name="bilik" value="TECC 1" checked onchange="selectBilik(this)">
+        <div class="bilik-card selected" id="card-tecc1" onclick="pilihBilik('TECC 1', this)">
           <div class="bilik-card-inner">
             <span class="bilik-icon">🖥️</span>
             <div class="bilik-info">
@@ -182,9 +181,8 @@
               <span class="bilik-tag tag-available" id="tag-tecc1">● Tersedia</span>
             </div>
           </div>
-        </label>
-        <label class="bilik-card" id="card-tecc3">
-          <input type="radio" name="bilik" value="TECC 3" onchange="selectBilik(this)">
+        </div>
+        <div class="bilik-card" id="card-tecc3" onclick="pilihBilik('TECC 3', this)">
           <div class="bilik-card-inner">
             <span class="bilik-icon">💻</span>
             <div class="bilik-info">
@@ -193,9 +191,8 @@
               <span class="bilik-tag tag-available" id="tag-tecc3">● Tersedia</span>
             </div>
           </div>
-        </label>
-        <label class="bilik-card" id="card-hybrid">
-          <input type="radio" name="bilik" value="Hybrid Classroom" onchange="selectBilik(this)">
+        </div>
+        <div class="bilik-card" id="card-hybrid" onclick="pilihBilik('Hybrid Classroom', this)">
           <div class="bilik-card-inner">
             <span class="bilik-icon">🎓</span>
             <div class="bilik-info">
@@ -204,7 +201,7 @@
               <span class="bilik-tag tag-available" id="tag-hybrid">● Tersedia</span>
             </div>
           </div>
-        </label>
+        </div>
       </div>
     </div>
 
@@ -350,12 +347,16 @@ calMonth = today.getMonth();
 document.getElementById('tarikh').min = today.toISOString().split('T')[0];
 
 // =================== BILIK SELECTION ===================
-function selectBilik(radio) {
-  selectedBilik = radio.value;
-  document.getElementById('bilik-display').value = selectedBilik;
+function pilihBilik(nama, el) {
+  selectedBilik = nama;
+  document.getElementById('bilik-display').value = nama;
   document.querySelectorAll('.bilik-card').forEach(c => c.classList.remove('selected'));
-  radio.closest('.bilik-card').classList.add('selected');
+  el.classList.add('selected');
   renderCalendar();
+}
+// fallback untuk keserasian
+function selectBilik(radio) {
+  pilihBilik(radio.value, radio.closest('.bilik-card'));
 }
 
 // =================== FORM SUBMIT ===================
