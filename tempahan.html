@@ -315,8 +315,10 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Tarikh</th>
-          <th>Masa</th>
+          <th>Tarikh Mula</th>
+          <th>Tarikh Tamat</th>
+          <th>Masa Mula</th>
+          <th>Masa Tamat</th>
           <th>Bilik</th>
           <th>Nama Pemohon</th>
           <th>Tujuan</th>
@@ -611,18 +613,21 @@ function renderList(data) {
 
   const sorted = [...data].sort((a, b) => new Date(toDateStr(b['Tarikh'])) - new Date(toDateStr(a['Tarikh'])));
   tbody.innerHTML = sorted.map((t, i) => {
-    const st  = t['Status'] || 'Menunggu';
-    const cls = st === 'Lulus' ? 'status-approved' : st === 'Ditolak' ? 'status-rejected' : 'status-pending';
-    const tj  = (t['Tujuan'] || '');
-    const tMula  = formatDate(toDateStr(t['Tarikh']));
-    const tTamat = t['Tarikh Tamat'] ? formatDate(toDateStr(t['Tarikh Tamat'])) : tMula;
-    const tarikhPapar = tMula === tTamat ? tMula : `${tMula} —<br>${tTamat}`;
+    const st      = t['Status'] || 'Menunggu';
+    const cls     = st === 'Lulus' ? 'status-approved' : st === 'Ditolak' ? 'status-rejected' : 'status-pending';
+    const tj      = (t['Tujuan'] || '');
+    const tMula   = formatDate(toDateStr(t['Tarikh']));
+    const tTamat  = t['Tarikh Tamat'] && t['Tarikh Tamat'] !== t['Tarikh'] ? formatDate(toDateStr(t['Tarikh Tamat'])) : tMula;
+    const mMula   = t['Masa Mula'] || '—';
+    const mTamat  = t['Masa Tamat'] || '—';
     return `<tr>
       <td>${sorted.length - i}</td>
-      <td>${tarikhPapar}</td>
-      <td>${t['Masa Mula']} – ${t['Masa Tamat']}</td>
-      <td><strong>${t['Bilik']}</strong></td>
-      <td>${t['Nama']}</td>
+      <td>${tMula}</td>
+      <td>${tTamat}</td>
+      <td>${mMula}</td>
+      <td>${mTamat}</td>
+      <td><strong>${t['Bilik'] || '—'}</strong></td>
+      <td>${t['Nama'] || '—'}</td>
       <td>${tj.length > 50 ? tj.substring(0,50) + '...' : tj}</td>
       <td><span class="status-badge ${cls}">${st}</span></td>
     </tr>`;
