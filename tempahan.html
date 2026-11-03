@@ -296,7 +296,13 @@
 
 <!-- SENARAI TEMPAHAN -->
 <div class="list-section">
-  <h3>📋 Senarai Permohonan Tempahan</h3>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+    <h3 style="margin-bottom:0;">📋 Senarai Permohonan Tempahan</h3>
+    <button onclick="semakStatus()" id="semak-btn" style="background:#1a3a5c;color:white;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      🔄 Semak Status Terkini
+    </button>
+  </div>
+  <div id="sync-msg" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1e40af;"></div>
   <div class="list-table-wrap">
     <table>
       <thead>
@@ -336,7 +342,7 @@
 <script>
 // =================== CONFIG ===================
 // Gantikan URL ini dengan URL Apps Script anda selepas deploy
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxk8ukY23BMrddr8b9Nv02tnUy4YNkEBog_kSTuE5CxRn837-NS8ACzVnPFFbWlHOo-/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaBIkoaLqKbtUyvKzzZhvNF1o9VoZ_OxtHLYx79muXPOLV8Vik1hxOwTLDAPGxsEVNXA/exec';
 
 // =================== STATE ===================
 let selectedBilik = 'TECC 1';
@@ -541,48 +547,101 @@ function closeTooltip() {
   document.getElementById('tooltip-overlay').classList.remove('show');
 }
 
-// =================== SYNC STATUS DARI GOOGLE SHEETS ===================
-function syncStatusFromSheet() {
-  if (APPS_SCRIPT_URL.includes('GANTI_URL')) return;
+// =================== SEMAK STATUS DARI GOOGLE SHEETS ===================
+// Guna JSONP (script tag injection) — cara paling reliable untuk Apps Script
+function semakStatus() {
+  if (APPS_SCRIPT_URL.includes('GANTI_URL')) {
+    tunjukSyncMsg('⚠️ URL Apps Script belum dikonfigurasi.', 'warn');
+    return;
+  }
 
-  // Guna script tag trick untuk elak CORS — Apps Script redirect ke URL yang boleh dibaca
-  fetch(APPS_SCRIPT_URL + '?action=getAll')
-    .then(r => r.json())
-    .then(res => {
-      if (!res || !res.data) return;
-      const local = getTempahanData();
-      let updated = false;
+  const btn = document.getElementById('semak-btn');
+  btn.textContent = '⏳ Menyemak...';
+  btn.disabled = true;
 
-      res.data.forEach(row => {
-        // Match menggunakan notel + tarikh + bilik
-        const notel    = String(row['No Telefon'] || '').trim();
-        const tarikh   = String(row['Tarikh'] || '').trim();
-        const bilik    = String(row['Bilik'] || '').trim();
-        const statusSheet = String(row['Status'] || '').trim();
+  // Bersihkan callback lama
+  if (window._jsonpCallback) {
+    try { delete window._jsonpCallback; } catch(e) {}
+  }
+  const oldScript = document.getElementById('jsonp-script');
+  if (oldScript) oldScript.remove();
 
-        if (!notel || !tarikh || !bilik || !statusSheet) return;
+  // Timeout 10 saat
+  const timeout = setTimeout(() => {
+    btn.textContent = '🔄 Semak Status Terkini';
+    btn.disabled = false;
+    tunjukSyncMsg('⚠️ Gagal sambung ke pelayan. Sila cuba lagi.', 'warn');
+  }, 10000);
 
-        const idx = local.findIndex(t =>
-          String(t.notel || '').trim() === notel &&
-          String(t.tarikh || '').trim() === tarikh &&
-          String(t.bilik || '').trim() === bilik
-        );
+  // Callback yang akan dipanggil oleh Apps Script
+  window._jsonpCallback = function(res) {
+    clearTimeout(timeout);
+    btn.textContent = '🔄 Semak Status Terkini';
+    btn.disabled = false;
 
-        if (idx !== -1 && local[idx].status !== statusSheet) {
-          local[idx].status = statusSheet;
-          updated = true;
-        }
-      });
+    if (!res || !res.data) {
+      tunjukSyncMsg('⚠️ Tiada data diterima.', 'warn');
+      return;
+    }
 
-      if (updated) {
-        localStorage.setItem('elearning_tempahan', JSON.stringify(local));
-        renderList();
-        renderCalendar();
-        console.log('Status dikemaskini dari Google Sheets');
+    const local = getTempahanData();
+    let updated = 0;
+
+    res.data.forEach(row => {
+      const notel       = String(row['No Telefon'] || '').trim();
+      const tarikh      = String(row['Tarikh'] || '').trim();
+      const bilik       = String(row['Bilik'] || '').trim();
+      const statusSheet = String(row['Status'] || '').trim();
+
+      if (!notel || !tarikh || !bilik || !statusSheet) return;
+
+      const idx = local.findIndex(t =>
+        String(t.notel || '').trim() === notel &&
+        String(t.tarikh || '').trim() === tarikh &&
+        String(t.bilik || '').trim() === bilik
+      );
+
+      if (idx !== -1 && local[idx].status !== statusSheet) {
+        local[idx].status = statusSheet;
+        updated++;
       }
-    })
-    .catch(err => console.log('Sync gagal (ok jika offline):', err));
+    });
+
+    if (updated > 0) {
+      localStorage.setItem('elearning_tempahan', JSON.stringify(local));
+      renderList();
+      renderCalendar();
+      tunjukSyncMsg(`✅ ${updated} status telah dikemaskini dari Google Sheets!`, 'ok');
+    } else {
+      tunjukSyncMsg('✅ Status sudah terkini. Tiada perubahan baharu.', 'ok');
+    }
+  };
+
+  // Inject script tag dengan callback parameter
+  const script = document.createElement('script');
+  script.id = 'jsonp-script';
+  script.src = APPS_SCRIPT_URL + '?callback=_jsonpCallback';
+  script.onerror = () => {
+    clearTimeout(timeout);
+    btn.textContent = '🔄 Semak Status Terkini';
+    btn.disabled = false;
+    tunjukSyncMsg('⚠️ Gagal sambung. Pastikan Apps Script di-deploy dengan betul.', 'warn');
+  };
+  document.head.appendChild(script);
 }
+
+function tunjukSyncMsg(msg, type) {
+  const el = document.getElementById('sync-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = type === 'ok' ? '#dcfce7' : '#fffbeb';
+  el.style.borderColor = type === 'ok' ? '#86efac' : '#fde68a';
+  el.style.color = type === 'ok' ? '#166534' : '#92400e';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+// Auto semak status bila halaman dibuka
+function syncStatusFromSheet() { semakStatus(); }
 
 // =================== LIST ===================
 function renderList() {
